@@ -2,37 +2,39 @@ package addons
 
 import (
 	"os"
+	"runtime"
 	"strings"
 
 	js "github.com/dop251/goja"
 )
 
 type Process struct {
-	env map[string]string
+	Env map[string]string `json:"env"`
 }
 
 func NewProcess() *Process {
-	return &Process{env: make(map[string]string)}
-}
+	var (
+		environ = os.Environ()
+		env     = make(map[string]string, len(environ))
+	)
 
-func (p Process) Register(runtime *js.Runtime) error {
-	var process = runtime.NewObject()
-
-	for _, e := range os.Environ() {
+	for _, e := range environ {
 		envKeyValue := strings.SplitN(e, "=", 2)
 
 		if len(envKeyValue) == 2 {
-			p.env[envKeyValue[0]] = envKeyValue[1]
+			env[envKeyValue[0]] = envKeyValue[1]
 		}
 	}
 
-	if err := process.Set("env", p.env); err != nil {
-		return err
-	}
+	return &Process{Env: env}
+}
 
+func (p Process) Gosched(...js.Value) { runtime.Gosched() } // TODO remove?
+
+func (p Process) Register(runtime *js.Runtime) error {
 	return runtime.GlobalObject().DefineDataProperty(
 		"process",
-		process,
+		runtime.ToValue(p),
 		js.FLAG_FALSE, // writable
 		js.FLAG_FALSE, // configurable
 		js.FLAG_TRUE,  // enumerable

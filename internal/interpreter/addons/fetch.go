@@ -79,7 +79,7 @@ func (f Fetch) fetch(runtime *js.Runtime) func(call js.FunctionCall) js.Value {
 
 		var result = fetchResponse{
 			runtime: runtime,
-			Headers: make(http.Header),
+			Headers: make(map[string]string),
 			URL:     url,
 		}
 
@@ -105,8 +105,11 @@ func (f Fetch) fetch(runtime *js.Runtime) func(call js.FunctionCall) js.Value {
 
 		result.setStatusCode(resp.StatusCode)
 		result.Body = string(responseBody)
-		result.Headers = resp.Header
 		result.OK = resp.StatusCode >= 200 && resp.StatusCode < 300
+
+		for name, v := range resp.Header {
+			result.Headers[name] = strings.Join(v, ", ")
+		}
 
 		return runtime.ToValue(result)
 	}
@@ -122,7 +125,7 @@ type fetchResponse struct { // https://developer.mozilla.org/en-US/docs/Web/API/
 	BodyUsed bool `json:"bodyUsed"` // ❌ not implemented
 
 	// The Headers object associated with the response
-	Headers map[string][]string `json:"headers"`
+	Headers map[string]string `json:"headers"`
 
 	// A boolean indicating whether the response was successful (status in the range 200 – 299) or not
 	OK bool `json:"ok"`

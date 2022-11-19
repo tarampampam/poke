@@ -19,7 +19,7 @@ func (Console) formatForConsole(call ...js.Value) string {
 	var output = make([]string, len(call))
 
 	for i, arg := range call {
-		output[i] = fmt.Sprintf("%v", arg.String())
+		output[i] = fmt.Sprintf("%v", arg.ToString())
 	}
 
 	return strings.Join(output, " ")
@@ -43,30 +43,9 @@ func (Console) Trace(_ ...js.Value)      {} // doing nothing
 func (Console) Assert(_ ...js.Value)     {} // doing nothing
 
 func (c Console) Register(runtime *js.Runtime) error {
-	var console = runtime.NewObject()
-
-	for name, handler := range map[string]func(args ...js.Value){
-		"log":   c.Log,
-		"error": c.Error,
-
-		"debug": c.Debug,
-		"dir":   c.Dir,
-		"info":  c.Info,
-		"warn":  c.Warn,
-
-		"time":    c.Time,
-		"timeEnd": c.TimeEnd,
-		"trace":   c.Trace,
-		"assert":  c.Assert,
-	} {
-		if err := console.Set(name, handler); err != nil {
-			return err
-		}
-	}
-
 	return runtime.GlobalObject().DefineDataProperty(
 		"console",
-		console,
+		runtime.ToValue(c),
 		js.FLAG_FALSE, // writable
 		js.FLAG_FALSE, // configurable
 		js.FLAG_TRUE,  // enumerable

@@ -13,7 +13,7 @@ import (
 var global string
 
 type addonRegisterer interface {
-	Register(runtime *js.Runtime) error
+	Register(*js.Runtime) error
 }
 
 func NewRuntime() (*js.Runtime, error) {
@@ -22,8 +22,8 @@ func NewRuntime() (*js.Runtime, error) {
 	runtime.SetFieldNameMapper(js.TagFieldNameMapper("json", true))
 
 	for _, addon := range []addonRegisterer{
+		addons.NewIO(runtime),
 		addons.NewProcess(),
-		addons.NewConsole(),
 		addons.NewFetch(context.TODO(), nil),
 	} {
 		if err := addon.Register(runtime); err != nil {
