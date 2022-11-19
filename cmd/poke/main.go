@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tarampampam/poke/internal/playground"
+	"github.com/tarampampam/poke/internal/interpreter"
 )
 
 // exitFn is a function for application exiting.
@@ -24,7 +24,7 @@ func main() {
 // run this CLI application.
 // Exit codes documentation: <https://tldp.org/LDP/abs/html/exitcodes.html>
 func run() (int, error) {
-	if err := playground.Run(); err != nil {
+	if err := interpreter.Run(); err != nil {
 		return 1, err
 	}
 
