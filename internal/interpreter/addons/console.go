@@ -13,6 +13,8 @@ import (
 // The main idea was looked here: <https://github.com/dop251/goja/issues/396#issuecomment-1163556584>
 type Console struct{}
 
+func NewConsole() *Console { return &Console{} }
+
 func (Console) formatForConsole(call ...js.Value) string {
 	var output = make([]string, len(call))
 
