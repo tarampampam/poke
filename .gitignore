@@ -1,0 +1,14 @@
+## IDEs
+/.idea
+/.vscode
+
+## Temp dirs & trash
+/temp
+/tmp
+/gen
+*.env
+.DS_Store
+*.cache
+*.out
+/cover*.*
+/poke

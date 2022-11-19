@@ -1,0 +1,30 @@
+## Git & tools
+.git
+.github
+.gitattributes
+.gitignore
+/Makefile
+/docker-compose.yml
+
+## IDEs
+.idea
+.vscode
+
+## Configs
+.editorconfig
+/.codecov.yml
+/.golangci.yml
+
+## Assets
+/poke
+
+## Temp
+/test
+/temp
+/tmp
+
+## etc
+/*.md
+.DS_Store
+*.cache
+*.out
