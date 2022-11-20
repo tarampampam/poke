@@ -46,6 +46,10 @@ func NewRuntime(ctx context.Context) (*Runtime, error) {
 	return &runtime, nil
 }
 
-func (r *Runtime) RunString(script string) (any, error) { return r.js.RunString(script) }
+func (r *Runtime) RunString(script string) ([]addons.Report, error) {
+	if _, err := r.js.RunString(script); err != nil {
+		return nil, err
+	}
 
-func (r *Runtime) Reports() []addons.Report { return r.reports.Stack() }
+	return r.reports.Stack(), nil
+}
