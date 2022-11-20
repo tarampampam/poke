@@ -16,24 +16,36 @@ type addonRegisterer interface {
 	Register(*js.Runtime) error
 }
 
-func NewRuntime() (*js.Runtime, error) {
-	var runtime = js.New()
+type Runtime struct {
+	js      *js.Runtime
+	reports *addons.Reports
+}
 
-	runtime.SetFieldNameMapper(js.TagFieldNameMapper("json", true))
+func NewRuntime(ctx context.Context) (*Runtime, error) {
+	var runtime = Runtime{js: js.New()}
+
+	runtime.reports = addons.NewReports(runtime.js)
+
+	runtime.js.SetFieldNameMapper(js.TagFieldNameMapper("json", true))
 
 	for _, addon := range []addonRegisterer{
-		addons.NewIO(runtime),
+		addons.NewIO(runtime.js),
 		addons.NewProcess(),
-		addons.NewFetch(context.TODO(), nil),
+		addons.NewFetch(ctx, nil),
+		runtime.reports,
 	} {
-		if err := addon.Register(runtime); err != nil {
+		if err := addon.Register(runtime.js); err != nil {
 			return nil, err
 		}
 	}
 
-	if _, err := runtime.RunScript("global", global); err != nil {
+	if _, err := runtime.js.RunScript("global", global); err != nil {
 		return nil, err
 	}
 
-	return runtime, nil
+	return &runtime, nil
 }
+
+func (r *Runtime) RunString(script string) (any, error) { return r.js.RunString(script) }
+
+func (r *Runtime) Reports() []addons.Report { return r.reports.Stack() }

@@ -4,8 +4,15 @@ declare global {
   }
 
   const io: {
-    stdOut(...v): void // Send something to the standard output
-    stdErr(...v): void // Send something to the errors output
+    stdOut(...v: any[]): void // Send something to the standard output
+    stdErr(...v: any[]): void // Send something to the errors output
+  }
+
+  const reports: {
+    push(...reports: {
+      level?: 'debug' | 'info' | 'warning' | 'error'
+      message: string
+    }[]): void
   }
 
   const assert: {

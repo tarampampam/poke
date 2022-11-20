@@ -12,8 +12,9 @@
 // console.log(resp.body)
 // console.log(resp.json())
 
-assert.same('aaa', 'aaa')
-assert.same('aaa', 'aaa')
+console.log('Hello, world!')
+reports.push({level: 0, message: 'asd'}, {level: 2})
+console.log('Hello, world2!')
 
 // console.log(await(new Promise((resolve, reject) => { resolve(123123123) })))
 
