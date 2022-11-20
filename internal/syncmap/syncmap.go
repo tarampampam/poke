@@ -168,9 +168,11 @@ func (s *SyncMap[K, V]) Keys() []K {
 // KeyChunks returns slice of map keys with a fixed maximal size.
 //
 // Example (pseudo-code):
+//
 //	syncmap.SyncMap[int, struct{}]{0: {}, 1: {}, 2: {}, 3: {}, 4: {}}.KeyChunks(2)
 //
 // Returns:
+//
 //	[][]int{{4, 1}, {3, 2}, {0}}
 func (s *SyncMap[K, V]) KeyChunks(chunkSize int) [][]K {
 	var (

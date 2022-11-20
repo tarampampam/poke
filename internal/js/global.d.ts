@@ -8,10 +8,11 @@ declare global {
     stdErr(...v: any[]): void // Send something to the errors output
   }
 
-  const reports: {
+  const events: {
     push(...reports: {
       level?: 'debug' | 'info' | 'warning' | 'error'
       message: string
+      error?: Error
     }[]): void
   }
 

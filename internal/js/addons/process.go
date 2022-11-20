@@ -18,9 +18,9 @@ func NewProcess() *Process {
 	)
 
 	for _, e := range environ {
-		envKeyValue := strings.SplitN(e, "=", 2)
+		envKeyValue := strings.SplitN(e, "=", 2) //nolint:gomnd
 
-		if len(envKeyValue) == 2 {
+		if len(envKeyValue) == 2 { //nolint:gomnd
 			env[envKeyValue[0]] = envKeyValue[1]
 		}
 	}

@@ -10,13 +10,13 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/urfave/cli/v2"
 
-	"github.com/tarampampam/poke/internal/interpreter"
-	"github.com/tarampampam/poke/internal/interpreter/addons"
+	"github.com/tarampampam/poke/internal/js"
+	"github.com/tarampampam/poke/internal/js/events"
 	"github.com/tarampampam/poke/internal/syncmap"
 )
 
 // NewCommand creates `run` command.
-func NewCommand() *cli.Command {
+func NewCommand() *cli.Command { //nolint:funlen,gocognit,gocyclo
 	return &cli.Command{
 		Name:        "run",
 		ArgsUsage:   "<files-or-directories...>",
@@ -40,47 +40,68 @@ func NewCommand() *cli.Command {
 			}
 
 			var (
-				wg      sync.WaitGroup
-				results syncmap.SyncMap[string, []addons.Report]
+				wg            sync.WaitGroup
+				summaryEvents syncmap.SyncMap[string, []events.Event]
 			)
 
 			for _, file := range files {
 				wg.Add(1)
 
-				go func(file string) {
+				go func(filePath string) {
 					defer wg.Done()
 
-					var runtime, err = interpreter.NewRuntime(c.Context)
+					var runtime, err = js.NewRuntime(c.Context)
 					if err != nil {
-						results.Store(file, []addons.Report{{
-							ReportLevel: addons.ReportLevelError,
-							Message:     err.Error(),
-						}})
+						summaryEvents.Store(filePath, []events.Event{{Level: events.LevelError, Error: err}})
 
 						return
 					}
 
-					script, err := os.ReadFile(file)
-					if err != nil {
-						results.Store(file, []addons.Report{{
-							ReportLevel: addons.ReportLevelError,
-							Message:     err.Error(),
-						}})
+					defer runtime.Close()
+
+					wg.Add(1)
+
+					go func() {
+						var buf = make([]events.Event, 0)
+
+						defer func() {
+							if current, ok := summaryEvents.Load(filePath); ok {
+								buf = append(current, buf...)
+							}
+
+							summaryEvents.Store(filePath, buf)
+
+							wg.Done()
+						}()
+
+						for {
+							select {
+							case <-c.Context.Done():
+								return
+
+							case event, ok := <-runtime.Events():
+								if !ok {
+									return
+								}
+
+								buf = append(buf, event)
+							}
+						}
+					}()
+
+					var script []byte
+
+					if script, err = os.ReadFile(filePath); err != nil {
+						summaryEvents.Store(filePath, []events.Event{{Level: events.LevelError, Error: err}})
 
 						return
 					}
 
-					reports, err := runtime.RunString(string(script))
-					if err != nil {
-						results.Store(file, []addons.Report{{
-							ReportLevel: addons.ReportLevelError,
-							Message:     err.Error(),
-						}})
+					if err = runtime.RunScript(filePath, string(script)); err != nil {
+						summaryEvents.Store(filePath, []events.Event{{Level: events.LevelError, Error: err}})
 
 						return
 					}
-
-					results.Store(file, reports)
 				}(file)
 			}
 
@@ -88,38 +109,38 @@ func NewCommand() *cli.Command {
 
 			var hasErrors bool
 
-			results.Range(func(file string, reports []addons.Report) bool {
-				fmt.Printf("%s:", file)
+			summaryEvents.Range(func(filePath string, eventsSlice []events.Event) bool {
+				fmt.Printf("%s:", filePath) //nolint:forbidigo
 
-				if len(reports) == 0 {
-					fmt.Print(" no reports\n")
+				if len(eventsSlice) == 0 {
+					fmt.Print(" no reports\n") //nolint:forbidigo
 				} else {
-					fmt.Print("\n")
+					fmt.Print("\n") //nolint:forbidigo
 
-					for _, report := range reports {
-						if report.ReportLevel == addons.ReportLevelError {
+					for _, e := range eventsSlice {
+						if e.Level == events.LevelError {
 							hasErrors = true
 						}
 
 						var color = text.FgBlue
 
-						switch report.ReportLevel {
-						case addons.ReportLevelError:
+						switch e.Level {
+						case events.LevelError:
 							color = text.FgRed
 
-						case addons.ReportLevelWarn:
+						case events.LevelWarn:
 							color = text.FgYellow
 
-						case addons.ReportLevelInfo:
+						case events.LevelInfo:
 							color = text.FgBlue
 
-						case addons.ReportLevelDebug:
+						case events.LevelDebug:
 							color = text.FgCyan
 						}
 
 						_, _ = fmt.Fprintf(os.Stdout,
 							"\t%s\n",
-							text.Colors{color, text.Bold}.Sprintf("%s", report.Message),
+							text.Colors{color, text.Bold}.Sprintf("%s (%s)", e.Message, e.Error),
 						)
 					}
 				}

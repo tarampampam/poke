@@ -22,9 +22,11 @@ type Fetch struct {
 }
 
 func NewFetch(ctx context.Context, client httpClient) *Fetch {
+	const defaultTimeout = time.Second * 60
+
 	if client == nil {
 		client = &http.Client{
-			Timeout: time.Second * 60,
+			Timeout: defaultTimeout,
 		}
 	}
 
@@ -36,8 +38,8 @@ func (f Fetch) Register(runtime *js.Runtime) error {
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-func (f Fetch) fetch(runtime *js.Runtime) func(call js.FunctionCall) js.Value {
-	return func(call js.FunctionCall) js.Value { // TODO implement methods on the response object
+func (f Fetch) fetch(runtime *js.Runtime) func(call js.FunctionCall) js.Value { //nolint:funlen,gocognit
+	return func(call js.FunctionCall) js.Value {
 		if len(call.Arguments) == 0 {
 			panic(runtime.ToValue("Wrong arguments count for the fetch function call"))
 		}
@@ -111,7 +113,7 @@ func (f Fetch) fetch(runtime *js.Runtime) func(call js.FunctionCall) js.Value {
 
 		result.setStatusCode(resp.StatusCode)
 		result.Body = string(responseBody)
-		result.OK = resp.StatusCode >= 200 && resp.StatusCode < 300
+		result.OK = resp.StatusCode >= 200 && resp.StatusCode < 300 //nolint:gomnd
 
 		for name, v := range resp.Header {
 			result.Headers[name] = strings.Join(v, ", ")
