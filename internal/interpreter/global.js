@@ -86,11 +86,11 @@ const console = new class {
   }
 
   log(...v) {
-    io.stdOut(this.fmt(...v).join(', '), '\n')
+    io.stdOut(this.fmt(...v).join(', ') + '\n')
   }
 
   error(...v) {
-    io.stdErr(this.fmt(...v).join(', '), '\n')
+    io.stdErr(this.fmt(...v).join(', ') + '\n')
   }
 
   debug(...v) {
@@ -106,32 +106,41 @@ const console = new class {
   }
 }
 
-/**
- * Simple `await` keyword wrapper.
- *
- * @param {*} args
- * @return {*}
- */
-const await = function (...args) {
-  if (args.length !== 1) {
-    throw new Error('await must be called with exactly 1 argument')
-  }
-
-  if (isPromise(args[0])) {
-    let resolved = false
-    let result = undefined
-
-    args[0].then(v => {
-      resolved = true
-      result = v
-    })
-
-    while (!resolved) {
-      process.gosched()
+const assert = new class {
+  /**
+   * @param {*} mustBeTrue
+   * @param {string?} message
+   *
+   * @return {void}
+   */
+  true(mustBeTrue, message) {
+    if (mustBeTrue === true) {
+      return
     }
 
-    return result
+    if (message === undefined) {
+      message = 'Expected true but got ' + String(mustBeTrue)
+    }
+
+    throw new Error(message)
   }
 
-  return args[0]
+  /**
+   * @param {*} actual
+   * @param {*} expected
+   * @param {string?} message
+   *
+   * @return {void}
+   */
+  same(actual, expected, message) {
+    if (actual === expected) {
+      return
+    }
+
+    if (message === undefined) {
+      message = String(actual) + ' and ' + String(expected) + ' are not the same'
+    }
+
+    throw new Error(message)
+  }
 }

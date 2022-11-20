@@ -2,7 +2,6 @@ package addons
 
 import (
 	"os"
-	"runtime"
 	"strings"
 
 	js "github.com/dop251/goja"
@@ -28,8 +27,6 @@ func NewProcess() *Process {
 
 	return &Process{Env: env}
 }
-
-func (p Process) Gosched(...js.Value) { runtime.Gosched() } // TODO remove?
 
 func (p Process) Register(runtime *js.Runtime) error {
 	return runtime.GlobalObject().DefineDataProperty(
