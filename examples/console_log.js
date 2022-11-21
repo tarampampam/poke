@@ -1,3 +1,3 @@
-#!/usr/bin/env poke
+#!/usr/bin/env poke run
 
 console.log("Hello, world!")

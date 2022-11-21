@@ -1,158 +1,161 @@
 package run
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"os"
-	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
-	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/urfave/cli/v2"
 
 	"github.com/tarampampam/poke/internal/js"
 	"github.com/tarampampam/poke/internal/js/events"
-	"github.com/tarampampam/poke/internal/syncmap"
 )
 
+type command struct {
+	c *cli.Command
+}
+
 // NewCommand creates `run` command.
-func NewCommand() *cli.Command { //nolint:funlen,gocognit,gocyclo
-	return &cli.Command{
+func NewCommand() *cli.Command { //nolint:funlen
+	var cmd = command{}
+
+	cmd.c = &cli.Command{
 		Name:        "run",
 		ArgsUsage:   "<files-or-directories...>",
 		Aliases:     []string{"r"},
 		Usage:       "Run poke files",
-		Description: "Wildcards are supported, e.g. `./tests/*/*.js`",
+		Description: "Wildcards are supported, e.g. `./tests/**/*.js`",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{ // TODO: use it
+				Name:  "sync",
+				Usage: "Run scripts in sync mode",
+			},
+			&cli.BoolFlag{ // TODO: use it
+				Name:  "async",
+				Usage: "Run scripts in async mode",
+			},
+		},
 		Action: func(c *cli.Context) error {
-			var files []string
-
-			for _, arg := range c.Args().Slice() {
-				matches, err := filepath.Glob(arg)
-				if err != nil {
-					return err
-				}
-
-				files = append(files, matches...)
+			files, findingErr := cmd.FindFiles(c.Args().Slice())
+			if findingErr != nil {
+				return findingErr
 			}
 
 			if len(files) == 0 {
-				return errors.New("no files or directories provided")
+				return fmt.Errorf(
+					"no valid files was found in %s (check the files path and a shebang in it)",
+					strings.Join(c.Args().Slice(), ", "),
+				)
 			}
 
 			var (
-				wg            sync.WaitGroup
-				summaryEvents syncmap.SyncMap[string, []events.Event]
+				wg           sync.WaitGroup
+				stats        = NewOverallRunningStats()
+				groupStartAt = time.Now()
 			)
 
-			for _, file := range files {
+			for _, filePath := range files {
 				wg.Add(1)
 
-				go func(filePath string) {
+				go func(filePath string) { // TODO: limit goroutines count
 					defer wg.Done()
 
-					var runtime, err = js.NewRuntime(c.Context)
-					if err != nil {
-						summaryEvents.Store(filePath, []events.Event{{Level: events.LevelError, Error: err}})
+					startedAt := time.Now()
+
+					ev, runningErr := cmd.RunScript(c.Context, filePath)
+
+					stats.SetDuration(filePath, time.Since(startedAt))
+
+					if runningErr != nil {
+						stats.SetError(filePath, runningErr)
 
 						return
 					}
 
-					defer runtime.Close()
-
-					wg.Add(1)
-
-					go func() {
-						var buf = make([]events.Event, 0)
-
-						defer func() {
-							if current, ok := summaryEvents.Load(filePath); ok {
-								buf = append(current, buf...)
-							}
-
-							summaryEvents.Store(filePath, buf)
-
-							wg.Done()
-						}()
-
-						for {
-							select {
-							case <-c.Context.Done():
-								return
-
-							case event, ok := <-runtime.Events():
-								if !ok {
-									return
-								}
-
-								buf = append(buf, event)
-							}
-						}
-					}()
-
-					var script []byte
-
-					if script, err = os.ReadFile(filePath); err != nil {
-						summaryEvents.Store(filePath, []events.Event{{Level: events.LevelError, Error: err}})
-
-						return
-					}
-
-					if err = runtime.RunScript(filePath, string(script)); err != nil {
-						summaryEvents.Store(filePath, []events.Event{{Level: events.LevelError, Error: err}})
-
-						return
-					}
-				}(file)
+					stats.SetEvents(filePath, ev)
+				}(filePath)
 			}
 
 			wg.Wait()
 
-			var hasErrors bool
+			stats.SetSummaryDuration(time.Since(groupStartAt))
 
-			summaryEvents.Range(func(filePath string, eventsSlice []events.Event) bool {
-				fmt.Printf("%s:", filePath) //nolint:forbidigo
-
-				if len(eventsSlice) == 0 {
-					fmt.Print(" no reports\n") //nolint:forbidigo
-				} else {
-					fmt.Print("\n") //nolint:forbidigo
-
-					for _, e := range eventsSlice {
-						if e.Level == events.LevelError {
-							hasErrors = true
-						}
-
-						var color = text.FgBlue
-
-						switch e.Level {
-						case events.LevelError:
-							color = text.FgRed
-
-						case events.LevelWarn:
-							color = text.FgYellow
-
-						case events.LevelInfo:
-							color = text.FgBlue
-
-						case events.LevelDebug:
-							color = text.FgCyan
-						}
-
-						_, _ = fmt.Fprintf(os.Stdout,
-							"\t%s\n",
-							text.Colors{color, text.Bold}.Sprintf("%s (%s)", e.Message, e.Error),
-						)
-					}
-				}
-
-				return true
-			})
-
-			if hasErrors {
-				return errors.New("some errors occurred")
+			if _, err := fmt.Fprintf(os.Stdout, "\n%s\n", stats.ToConsole()); err != nil {
+				return err
 			}
 
 			return nil
 		},
 	}
+
+	return cmd.c
+}
+
+func (cmd *command) FindFiles(in []string) ([]string, error) {
+	var files []string
+
+	for _, arg := range in {
+		matches, globErr := doublestar.FilepathGlob(arg)
+		if globErr != nil {
+			return nil, globErr
+		}
+
+		files = append(files, matches...)
+	}
+
+	return files, nil
+}
+
+func (cmd *command) RunScript(ctx context.Context, filePath string) ([]events.Event, error) {
+	script, readErr := os.ReadFile(filePath)
+	if readErr != nil {
+		return nil, readErr
+	}
+
+	runtime, createErr := js.NewRuntime(ctx)
+	if createErr != nil {
+		return nil, createErr
+	}
+
+	var (
+		buf    = make([]events.Event, 0, 16) //nolint:gomnd // pre-allocation is better than re-allocation
+		locker = make(chan struct{})
+	)
+
+	go func() {
+		defer close(locker)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case event, ok := <-runtime.Events():
+				if !ok {
+					return
+				}
+
+				buf = append(buf, event)
+
+				if event.Level == events.LevelError {
+					runtime.Interrupt("error event received")
+				}
+			}
+		}
+	}()
+
+	runErr := runtime.RunScript(filePath, string(script))
+	runtime.Close()
+
+	<-locker
+
+	if runErr != nil {
+		return nil, runErr
+	}
+
+	return buf, nil // TODO return last captured events error
 }

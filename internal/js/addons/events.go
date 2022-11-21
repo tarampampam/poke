@@ -1,6 +1,7 @@
 package addons
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -10,12 +11,14 @@ import (
 )
 
 type Events struct {
+	ctx     context.Context     `js:"-"`
 	runtime *js.Runtime         `js:"-"`
 	channel chan<- events.Event `js:"-"`
 }
 
-func NewReports(runtime *js.Runtime, channel chan<- events.Event) *Events {
+func NewEvents(ctx context.Context, runtime *js.Runtime, channel chan<- events.Event) *Events {
 	return &Events{
+		ctx:     ctx,
 		runtime: runtime,
 		channel: channel,
 	}
@@ -44,7 +47,12 @@ func (e *Events) Push(args ...js.Value) {
 			event.Error = errors.New(err.String())
 		}
 
-		e.channel <- event
+		select {
+		case <-e.ctx.Done():
+			return
+
+		case e.channel <- event:
+		}
 	}
 }
 

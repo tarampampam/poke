@@ -3,6 +3,7 @@ package js
 import (
 	"context"
 	_ "embed"
+	"sync"
 
 	js "github.com/dop251/goja"
 
@@ -20,13 +21,12 @@ type addonRegisterer interface {
 type Runtime struct {
 	runtime *js.Runtime
 	events  chan events.Event
+
+	closeOnce sync.Once
 }
 
 func NewRuntime(ctx context.Context) (*Runtime, error) {
-	var (
-		r           = Runtime{runtime: js.New(), events: make(chan events.Event)}
-		eventsAddon = addons.NewReports(r.runtime, r.events)
-	)
+	var r = Runtime{runtime: js.New(), events: make(chan events.Event, 32)} //nolint:gomnd
 
 	r.runtime.SetFieldNameMapper(js.TagFieldNameMapper("json", true))
 
@@ -34,14 +34,18 @@ func NewRuntime(ctx context.Context) (*Runtime, error) {
 		addons.NewIO(r.runtime),
 		addons.NewProcess(),
 		addons.NewFetch(ctx, nil),
-		eventsAddon,
+		addons.NewEvents(ctx, r.runtime, r.events),
 	} {
 		if err := addon.Register(r.runtime); err != nil {
+			r.Close()
+
 			return nil, err
 		}
 	}
 
 	if _, err := r.runtime.RunScript("global.js", global); err != nil {
+		r.Close()
+
 		return nil, err
 	}
 
@@ -58,4 +62,12 @@ func (r *Runtime) RunScript(name, script string) error {
 	return nil
 }
 
-func (r *Runtime) Close() { close(r.events) }
+func (r *Runtime) Interrupt(reason string) {
+	r.runtime.Interrupt(reason)
+}
+
+func (r *Runtime) Close() {
+	r.closeOnce.Do(func() {
+		close(r.events)
+	})
+}

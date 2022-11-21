@@ -1,4 +1,4 @@
-#!/usr/bin/env poke
+#!/usr/bin/env poke run
 
 const resp = fetchSync('https://httpbin.org/get', {
   method: 'get', // *GET, POST, PUT, DELETE, etc.
