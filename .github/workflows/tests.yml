@@ -64,7 +64,7 @@ jobs:
       matrix:
         os: [linux, windows, darwin] # linux, freebsd, darwin, windows
         arch: [amd64]                # amd64, 386
-    needs: [validate-openapi, golangci-lint, go-test, build-frontend]
+    needs: [golangci-lint, go-test]
     steps:
       - uses: actions/checkout@v3
 
