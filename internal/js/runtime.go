@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	js "github.com/dop251/goja"
+	"github.com/pkg/errors"
 
 	"github.com/tarampampam/poke/internal/js/addons"
 	"github.com/tarampampam/poke/internal/js/events"
@@ -14,6 +15,9 @@ import (
 
 //go:embed global.js
 var global string
+
+//go:embed global.d.ts
+var globalDts string
 
 type (
 	// RuntimeOption allows to set up some internal Runtime properties from outside.
@@ -82,6 +86,12 @@ func (r *Runtime) Events() <-chan events.Event { return r.events }
 func (r *Runtime) RunScript(name, script string) error {
 	if _, err := r.runtime.RunScript(name, script); err != nil {
 		return err
+	}
+
+	if afterScript, ok := js.AssertFunction(r.runtime.Get("__afterScript")); ok {
+		if _, err := afterScript(r.runtime.GlobalObject()); err != nil {
+			return errors.Wrap(err, "__afterScript calling failed")
+		}
 	}
 
 	return nil

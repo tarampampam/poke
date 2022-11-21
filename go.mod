@@ -6,6 +6,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.4.0
 	github.com/dop251/goja v0.0.0-20221118162653-d4bf6fde1b86
 	github.com/jedib0t/go-pretty/v6 v6.4.2
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1
 	github.com/urfave/cli/v2 v2.23.5
 )

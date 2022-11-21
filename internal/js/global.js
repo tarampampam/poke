@@ -1,8 +1,19 @@
+/**
+ * @param {*} v
+ * @return {boolean}
+ */
 const isPromise = (v) => {
-  return v && typeof v === 'object' && typeof v.then === 'function' && typeof v.catch === 'function'
+  return v && typeof v === 'object' && v instanceof Promise
 }
 
+/**
+ * Simple replacement for the Console implementation.
+ */
 const console = new class {
+  /**
+   * @param {*} v
+   * @return {string|number}
+   */
   fmtValue(v) {
     const type = typeof v
 
@@ -38,6 +49,10 @@ const console = new class {
     }
   }
 
+  /**
+   * @param {*} v
+   * @return {Array<string|number>}
+   */
   fmt(...v) {
     const parts = new Array(v.length)
 
@@ -106,12 +121,71 @@ const console = new class {
   }
 }
 
+/**
+ * @internal
+ */
+const tests = new class {
+  /** @type {Map<Symbol, Function>} */
+  beforeAll = new Map()
+  /** @type {Map<Symbol, Function>} */
+  beforeEach = new Map()
+  /** @type {Map<Symbol, Function>} */
+  afterEach = new Map()
+  /** @type {Map<Symbol, Function>} */
+  afterAll = new Map()
+  /** @type {Map<string, Function>} */
+  testsQueue = new Map()
+}
+
+/** Runs a function before any of the tests in this file run. */
+const beforeAll = (fn) => tests.beforeAll.set(Symbol(), fn)
+
+/** Runs a function before each of the tests in this file runs. */
+const beforeEach = (fn) => tests.beforeEach.set(Symbol(), fn)
+
+/** Runs a function after each one of the tests in this file completes. */
+const afterEach = (fn) => tests.afterEach.set(Symbol(), fn)
+
+/** Runs a function after all the tests in this file have completed. */
+const afterAll = (fn) => tests.afterAll.set(Symbol(), fn)
+
+/** All you need in a test file is the test method which runs a test. */
+const test = (name, fn) => tests.testsQueue.set(name, fn)
+
+/** Is an alias for the test() function. */
+const it = (name, fn) => test(name, fn)
+
+/** Is an alias for the test() function. */
+const describe = (name, fn) => test(name, fn)
+
+/**
+ * This function will be called at the end of the script execution by the Go runtime.
+ *
+ * @internal
+ */
+const __afterScript = () => {
+  if (tests.testsQueue.size > 0) {
+    tests.beforeAll.forEach((fn) => fn())
+
+    tests.testsQueue.forEach((fn, name) => {
+      tests.beforeEach.forEach((fn) => fn())
+      fn() // execute test
+      tests.afterEach.forEach((fn) => fn())
+    })
+
+    tests.afterAll.forEach((fn) => fn())
+  }
+}
+
+/**
+ * Assertion functions.
+ */
 const assert = new class {
   /**
    * @param {*} mustBeTrue
    * @param {string?} message
    *
-   * @return {void}
+   * @throws
    */
   true(mustBeTrue, message) {
     if (mustBeTrue === true) {
@@ -130,17 +204,13 @@ const assert = new class {
    * @param {*} expected
    * @param {string?} message
    *
-   * @return {void}
+   * @throws
    */
   same(actual, expected, message) {
-    if (actual === expected) {
-      return
-    }
-
     if (message === undefined) {
       message = String(actual) + ' and ' + String(expected) + ' are not the same'
     }
 
-    throw new Error(message)
+    assert.true(actual === expected, message)
   }
 }
