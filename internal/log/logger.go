@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type (
@@ -63,7 +64,9 @@ func WithStdErr(w io.Writer) Option { return func(l *Log) { l.stdErr = w } }
 
 // Log is a logger that logs messages at specified level.
 type Log struct {
-	lvl    Level
+	lvl Level
+
+	mu     sync.Mutex
 	stdOut io.Writer
 	stdErr io.Writer
 }
@@ -124,7 +127,7 @@ func (l *Log) write(w io.Writer, c colors, prefix, sep, msg string, extra ...Ext
 	)
 
 	for i, line := range msgLines {
-		if i == 0 {
+		if i == 0 { //nolint:nestif
 			b.WriteString(c[0].Sprint(prefix))
 			b.WriteString(sep)
 			b.WriteString(c[1].Sprint(line))
@@ -151,7 +154,9 @@ func (l *Log) write(w io.Writer, c colors, prefix, sep, msg string, extra ...Ext
 		}
 	}
 
+	l.mu.Lock()
 	_, _ = fmt.Fprintln(w, b.String())
+	l.mu.Unlock()
 }
 
 // SetLevel sets the log level.
@@ -214,7 +219,7 @@ func (l *Log) Fatal(msg string, v ...Extra) {
 
 	var b strings.Builder
 
-	b.Grow(len(msg) + 4) // more faster fmt.Sprintf("  %s  ") replacement
+	b.Grow(len(msg) + 4) //nolint:gomnd // more faster fmt.Sprintf("  %s  ") replacement
 	b.WriteString("  ")
 	b.WriteString(msg)
 	b.WriteString("  ")

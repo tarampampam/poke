@@ -51,12 +51,12 @@ func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 				Name:    threadsCountFlagName,
 				Aliases: []string{"t"},
 				Usage:   "number of threads to run scripts in parallel",
-				Value:   uint(runtime.NumCPU() * 3),
+				Value:   uint(runtime.NumCPU() * 3), //nolint:gomnd // default value
 			},
 			&cli.DurationFlag{
 				Name:  maxScriptExecTimeFlagName,
 				Usage: "maximum execution time of each script, e.g. '10s' or '1m'",
-				Value: 60 * time.Second,
+				Value: 60 * time.Second, //nolint:gomnd // default value
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -114,7 +114,6 @@ func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 					stats.SetDuration(filePath, time.Since(startedAt))
 
 					if runningErr != nil {
-
 						stats.SetError(filePath, runningErr)
 						l.Error("Script execution failed", log.With("file", filePath), log.With("error", runningErr))
 
@@ -181,9 +180,9 @@ func (cmd *command) FindFiles(in []string) ([]string, error) {
 	return files, nil
 }
 
-var colorLogPrefix = text.Colors{text.FgWhite}
+var colorLogPrefix = text.Colors{text.FgWhite} //nolint:gochecknoglobals
 
-func (cmd *command) RunScript(
+func (cmd *command) RunScript( //nolint:funlen
 	pCtx context.Context,
 	filePath string,
 	maxExecTime time.Duration,
