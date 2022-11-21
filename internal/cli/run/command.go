@@ -24,6 +24,13 @@ type command struct {
 	c *cli.Command
 }
 
+var (
+	colorRuns      = text.Colors{text.BgYellow, text.FgHiWhite}
+	colorPass      = text.Colors{text.BgGreen, text.FgHiWhite, text.Bold}
+	colorFail      = text.Colors{text.BgRed, text.FgHiWhite, text.Bold}
+	colorLogPrefix = text.Colors{text.FgWhite, text.Bold}
+)
+
 // NewCommand creates `run` command.
 func NewCommand() *cli.Command { //nolint:funlen
 	const (
@@ -107,17 +114,21 @@ func NewCommand() *cli.Command { //nolint:funlen
 
 					startedAt := time.Now()
 
+					_, _ = fmt.Fprintf(os.Stdout, "%s %s\n", colorRuns.Sprint(" RUNS "), filePath)
+
 					ev, runningErr := cmd.RunScript(ctx, filePath, maxScriptExecTime)
 
 					stats.SetDuration(filePath, time.Since(startedAt))
 
 					if runningErr != nil {
 						stats.SetError(filePath, runningErr)
+						_, _ = fmt.Fprintf(os.Stderr, "%s %s (%s)\n", colorFail.Sprint(" FAIL "), filePath, runningErr)
 
 						return
 					}
 
 					stats.SetEvents(filePath, ev)
+					_, _ = fmt.Fprintf(os.Stdout, "%s %s\n", colorPass.Sprint(" PASS "), filePath)
 				}(filePath)
 			}
 
@@ -186,7 +197,7 @@ func (cmd *command) RunScript(pCtx context.Context, filePath string, maxExecTime
 	defer cancel()
 
 	interpreter, createErr := js.NewRuntime(ctx, js.WithPrinter(printer.StringPrefixPrinter(
-		text.Colors{text.FgWhite, text.Bold}.Sprintf("%s:\t", filePath),
+		colorLogPrefix.Sprintf("%s:\t", filePath),
 	)))
 
 	if createErr != nil {
@@ -214,6 +225,8 @@ func (cmd *command) RunScript(pCtx context.Context, filePath string, maxExecTime
 				buf = append(buf, event)
 
 				if event.Level == events.LevelError {
+					cancel()
+
 					interpreter.Interrupt("error event received")
 				}
 			}

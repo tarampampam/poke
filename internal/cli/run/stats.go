@@ -72,7 +72,7 @@ func (r *OverallRunningStats) SetSummaryDuration(d time.Duration) {
 func (r *OverallRunningStats) ToConsole() string {
 	tbl := table.NewWriter()
 	tbl.SetStyle(table.StyleLight)
-	tbl.AppendHeader(table.Row{"File Name", "Events count", "Success", "Duration"})
+	tbl.AppendHeader(table.Row{"File", "Events count", "Success", "Duration"})
 
 	r.mu.Lock()
 
