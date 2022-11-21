@@ -1,6 +1,7 @@
 declare global {
   const process: {
     env: { [key: string]: string }
+    delay(ms: number): void // Pause the script execution for the given number of milliseconds (1000 == 1 sec.)
   }
 
   const io: {

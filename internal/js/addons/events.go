@@ -11,9 +11,9 @@ import (
 )
 
 type Events struct {
-	ctx     context.Context     `js:"-"`
-	runtime *js.Runtime         `js:"-"`
-	channel chan<- events.Event `js:"-"`
+	ctx     context.Context
+	runtime *js.Runtime
+	channel chan<- events.Event
 }
 
 func NewEvents(ctx context.Context, runtime *js.Runtime, channel chan<- events.Event) *Events {

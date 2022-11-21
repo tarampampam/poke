@@ -1,18 +1,22 @@
 package addons
 
 import (
-	"fmt"
 	"io"
 	"os"
 
 	js "github.com/dop251/goja"
+
+	"github.com/tarampampam/poke/internal/js/printer"
 )
 
 type IO struct {
-	runtime *js.Runtime `js:"-"` // runtime instance
+	runtime *js.Runtime
+	printer printer.Printer
 }
 
-func NewIO(runtime *js.Runtime) *IO { return &IO{runtime: runtime} }
+func NewIO(runtime *js.Runtime, printer printer.Printer) *IO {
+	return &IO{runtime: runtime, printer: printer}
+}
 
 func (io IO) write(w io.Writer, args ...js.Value) {
 	var output = make([]any, len(args))
@@ -21,7 +25,7 @@ func (io IO) write(w io.Writer, args ...js.Value) {
 		output[i] = arg
 	}
 
-	if _, err := fmt.Fprint(w, output...); err != nil {
+	if err := io.printer(w, output...); err != nil {
 		panic(io.runtime.ToValue(err.Error()))
 	}
 }

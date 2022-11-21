@@ -4,15 +4,20 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/urfave/cli/v2"
 
 	"github.com/tarampampam/poke/internal/js"
 	"github.com/tarampampam/poke/internal/js/events"
+	"github.com/tarampampam/poke/internal/js/printer"
 )
 
 type command struct {
@@ -21,6 +26,12 @@ type command struct {
 
 // NewCommand creates `run` command.
 func NewCommand() *cli.Command { //nolint:funlen
+	const (
+		syncFlagName              = "sync"
+		threadsCountFlagName      = "threads"
+		maxScriptExecTimeFlagName = "max-script-exec-time"
+	)
+
 	var cmd = command{}
 
 	cmd.c = &cli.Command{
@@ -28,18 +39,40 @@ func NewCommand() *cli.Command { //nolint:funlen
 		ArgsUsage:   "<files-or-directories...>",
 		Aliases:     []string{"r"},
 		Usage:       "Run poke files",
-		Description: "Wildcards are supported, e.g. `./tests/**/*.js`",
+		Description: "Wildcards are supported, e.g. './tests/**/*.js'",
 		Flags: []cli.Flag{
-			&cli.BoolFlag{ // TODO: use it
-				Name:  "sync",
-				Usage: "Run scripts in sync mode",
+			&cli.BoolFlag{
+				Name:    syncFlagName,
+				Aliases: []string{"s"},
+				Usage:   "forces scripts running in sync mode",
 			},
-			&cli.BoolFlag{ // TODO: use it
-				Name:  "async",
-				Usage: "Run scripts in async mode",
+			&cli.UintFlag{
+				Name:    threadsCountFlagName,
+				Aliases: []string{"t"},
+				Usage:   "number of threads to run scripts in parallel",
+				Value:   uint(runtime.NumCPU() * 3),
+			},
+			&cli.DurationFlag{
+				Name:  maxScriptExecTimeFlagName,
+				Usage: "maximum execution time of each script, e.g. '10s' or '1m'",
+				Value: 60 * time.Second,
 			},
 		},
 		Action: func(c *cli.Context) error {
+			var (
+				threadsCount      = c.Uint(threadsCountFlagName)
+				maxScriptExecTime = c.Duration(maxScriptExecTimeFlagName)
+			)
+
+			if c.Bool(syncFlagName) || threadsCount == 0 {
+				threadsCount = 1
+			}
+
+			var ctx, cancel = context.WithCancel(c.Context) // main context creation
+			defer cancel()
+
+			cmd.subscribeForSystemSignals(ctx, func(_ os.Signal) { cancel() })
+
 			files, findingErr := cmd.FindFiles(c.Args().Slice())
 			if findingErr != nil {
 				return findingErr
@@ -54,19 +87,27 @@ func NewCommand() *cli.Command { //nolint:funlen
 
 			var (
 				wg           sync.WaitGroup
+				guard        = make(chan struct{}, threadsCount)
 				stats        = NewOverallRunningStats()
 				groupStartAt = time.Now()
 			)
 
+		runLoop:
 			for _, filePath := range files {
-				wg.Add(1)
+				select {
+				case guard <- struct{}{}: // would block if guard channel is already filled
+					wg.Add(1)
 
-				go func(filePath string) { // TODO: limit goroutines count
-					defer wg.Done()
+				case <-ctx.Done():
+					break runLoop
+				}
+
+				go func(filePath string) {
+					defer func() { <-guard; /* release the guard */ wg.Done() }()
 
 					startedAt := time.Now()
 
-					ev, runningErr := cmd.RunScript(c.Context, filePath)
+					ev, runningErr := cmd.RunScript(ctx, filePath, maxScriptExecTime)
 
 					stats.SetDuration(filePath, time.Since(startedAt))
 
@@ -81,6 +122,7 @@ func NewCommand() *cli.Command { //nolint:funlen
 			}
 
 			wg.Wait()
+			close(guard)
 
 			stats.SetSummaryDuration(time.Since(groupStartAt))
 
@@ -93,6 +135,30 @@ func NewCommand() *cli.Command { //nolint:funlen
 	}
 
 	return cmd.c
+}
+
+func (cmd *command) subscribeForSystemSignals(ctx context.Context, fn func(sig os.Signal)) {
+	var sigs = make(chan os.Signal, 1)
+
+	signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		defer func() { signal.Stop(sigs); close(sigs) }()
+
+		select {
+		case <-ctx.Done():
+			break
+
+		case sig, opened := <-sigs:
+			if ctx.Err() != nil { // additional context checking
+				break
+			}
+
+			if opened && sig != nil {
+				fn(sig)
+			}
+		}
+	}()
 }
 
 func (cmd *command) FindFiles(in []string) ([]string, error) {
@@ -110,13 +176,19 @@ func (cmd *command) FindFiles(in []string) ([]string, error) {
 	return files, nil
 }
 
-func (cmd *command) RunScript(ctx context.Context, filePath string) ([]events.Event, error) {
+func (cmd *command) RunScript(pCtx context.Context, filePath string, maxExecTime time.Duration) ([]events.Event, error) {
 	script, readErr := os.ReadFile(filePath)
 	if readErr != nil {
 		return nil, readErr
 	}
 
-	runtime, createErr := js.NewRuntime(ctx)
+	ctx, cancel := context.WithTimeout(pCtx, maxExecTime)
+	defer cancel()
+
+	interpreter, createErr := js.NewRuntime(ctx, js.WithPrinter(printer.StringPrefixPrinter(
+		text.Colors{text.FgWhite, text.Bold}.Sprintf("%s:\t", filePath),
+	)))
+
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -134,7 +206,7 @@ func (cmd *command) RunScript(ctx context.Context, filePath string) ([]events.Ev
 			case <-ctx.Done():
 				return
 
-			case event, ok := <-runtime.Events():
+			case event, ok := <-interpreter.Events():
 				if !ok {
 					return
 				}
@@ -142,14 +214,22 @@ func (cmd *command) RunScript(ctx context.Context, filePath string) ([]events.Ev
 				buf = append(buf, event)
 
 				if event.Level == events.LevelError {
-					runtime.Interrupt("error event received")
+					interpreter.Interrupt("error event received")
 				}
 			}
 		}
 	}()
 
-	runErr := runtime.RunScript(filePath, string(script))
-	runtime.Close()
+	t := time.AfterFunc(maxExecTime, func() {
+		cancel()
+
+		interpreter.Interrupt(fmt.Sprintf("script execution time exceeded (%s)", maxExecTime))
+	})
+
+	defer t.Stop()
+
+	runErr := interpreter.RunScript(filePath, string(script))
+	interpreter.Close()
 
 	<-locker
 
@@ -157,5 +237,5 @@ func (cmd *command) RunScript(ctx context.Context, filePath string) ([]events.Ev
 		return nil, runErr
 	}
 
-	return buf, nil // TODO return last captured events error
+	return buf, nil
 }

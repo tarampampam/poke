@@ -124,7 +124,7 @@ func (f Fetch) fetch(runtime *js.Runtime) func(call js.FunctionCall) js.Value { 
 }
 
 type fetchResponse struct { // https://developer.mozilla.org/en-US/docs/Web/API/Response
-	runtime *js.Runtime `js:"-"`
+	runtime *js.Runtime
 
 	// Body contents
 	Body string `json:"body"`
