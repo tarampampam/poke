@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/urfave/cli/v2"
 
 	"github.com/tarampampam/poke/internal/js"
@@ -180,6 +181,8 @@ func (cmd *command) FindFiles(in []string) ([]string, error) {
 	return files, nil
 }
 
+var colorLogPrefix = text.Colors{text.FgWhite}
+
 func (cmd *command) RunScript(
 	pCtx context.Context,
 	filePath string,
@@ -194,7 +197,7 @@ func (cmd *command) RunScript(
 	defer cancel()
 
 	interpreter, createErr := js.NewRuntime(ctx, js.WithPrinter(printer.StringPrefixPrinter(
-		fmt.Sprintf("%s: ", filePath),
+		colorLogPrefix.Sprintf("%s: ", filePath),
 	)))
 
 	if createErr != nil {

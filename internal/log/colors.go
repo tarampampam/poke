@@ -6,33 +6,33 @@ type colors [3]text.Colors // 0: prefix, 1: message, 2: extra data
 
 var (
 	colorsDebug = colors{
-		{text.BgWhite}, // prefix
+		{text.BgCyan, text.FgHiWhite}, // prefix
+		{},                            // message
+		{text.FgWhite},                // extra data
+	}
+
+	colorsInfo = colors{
+		{text.BgBlue, text.FgHiWhite}, // prefix
+		{},                            // message
+		{text.FgWhite},                // extra data
+	}
+
+	colorsSuccess = colors{
+		{text.BgGreen, text.FgHiWhite, text.Bold}, // prefix
 		{},             // message
 		{text.FgWhite}, // extra data
 	}
 
-	colorsInfo = colors{
-		{text.BgHiBlue, text.FgHiWhite}, // prefix
+	colorsWarn = colors{
+		{text.BgYellow, text.FgHiWhite}, // prefix
 		{},                              // message
 		{text.FgWhite},                  // extra data
 	}
 
-	colorsSuccess = colors{
-		{text.BgHiGreen, text.FgHiWhite}, // prefix
-		{},                               // message
-		{text.FgWhite},                   // extra data
-	}
-
-	colorsWarn = colors{
-		{text.BgHiYellow, text.FgHiWhite}, // prefix
-		{},                                // message
-		{text.FgWhite},                    // extra data
-	}
-
 	colorsError = colors{
-		{text.BgHiRed, text.FgHiWhite}, // prefix
-		{},                             // message
-		{text.FgWhite},                 // extra data
+		{text.BgHiRed, text.FgHiWhite, text.Bold}, // prefix
+		{},             // message
+		{text.FgWhite}, // extra data
 	}
 
 	colorsFatal = colors{

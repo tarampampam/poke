@@ -106,22 +106,48 @@ func (l *Log) check(lvl Level) bool {
 }
 
 func (l *Log) write(w io.Writer, c colors, prefix, sep, msg string, extra ...Extra) {
-	var b strings.Builder
+	const bytesPerColor = 6 * 2
 
-	b.Grow(len(prefix) + len(msg) + 32 + len(extra)*64) // extra bytes for the ASCII color codes
-	b.WriteString(c[0].Sprint(prefix))
-	b.WriteString(sep)
-	b.WriteString(c[1].Sprint(msg))
+	var (
+		b        strings.Builder
+		msgLines = strings.FieldsFunc(msg, func(r rune) bool { return r == '\n' })
+	)
 
-	if len(extra) > 0 {
-		b.WriteRune('\t')
+	if len(msgLines) == 0 {
+		msgLines = []string{""}
+	}
 
-		for i, e := range extra {
-			b.WriteString(c[2].Sprint(e.Key(), ":", e.Value()))
+	b.Grow(
+		((len(prefix) + bytesPerColor) * len(msgLines)) +
+			len(msg) + bytesPerColor +
+			len(extra)*bytesPerColor*2,
+	)
 
-			if i < len(extra)-1 {
-				b.WriteRune(' ')
+	for i, line := range msgLines {
+		if i == 0 {
+			b.WriteString(c[0].Sprint(prefix))
+			b.WriteString(sep)
+			b.WriteString(c[1].Sprint(line))
+
+			if len(extra) > 0 {
+				if line != "" {
+					b.WriteRune('\t')
+				}
+
+				for j, e := range extra {
+					b.WriteString(c[2].Sprint(e.Key(), ":"))
+					b.WriteString(fmt.Sprint(e.Value()))
+
+					if j < len(extra)-1 {
+						b.WriteRune(' ')
+					}
+				}
 			}
+		} else {
+			b.WriteRune('\n')
+			b.WriteString(c[0].Sprint(strings.Repeat(" ", len(prefix))))
+			b.WriteString(sep)
+			b.WriteString(c[1].Sprint(line))
 		}
 	}
 

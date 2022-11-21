@@ -69,7 +69,7 @@ func (r *OverallRunningStats) SetSummaryDuration(d time.Duration) {
 	r.mu.Unlock()
 }
 
-func (r *OverallRunningStats) ToConsole() string {
+func (r *OverallRunningStats) ToConsole() string { // TODO make this printer great again!
 	tbl := table.NewWriter()
 	tbl.SetStyle(table.StyleLight)
 	tbl.AppendHeader(table.Row{"File", "Events count", "Success", "Duration"})
