@@ -2,12 +2,10 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/jedib0t/go-pretty/v6/text"
-
 	"github.com/tarampampam/poke/internal/cli"
+	"github.com/tarampampam/poke/internal/log"
 )
 
 // exitFn is a function for application exiting.
@@ -15,12 +13,11 @@ var exitFn = os.Exit //nolint:gochecknoglobals
 
 // main CLI application entrypoint.
 func main() {
-	code, err := run()
+	var l = log.New(log.InfoLevel)
+
+	code, err := run(l)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%s%s\n",
-			text.Colors{text.BgHiRed, text.FgBlack, text.Bold}.Sprint("  Fatal error  "),
-			text.Colors{text.BgBlack, text.FgHiRed}.Sprintf("  %s  ", err.Error()),
-		)
+		l.Fatal(err.Error())
 	}
 
 	exitFn(code)
@@ -28,8 +25,8 @@ func main() {
 
 // run this CLI application.
 // Exit codes documentation: <https://tldp.org/LDP/abs/html/exitcodes.html>
-func run() (int, error) {
-	if err := (cli.NewApp()).Run(os.Args); err != nil {
+func run(l *log.Log) (int, error) {
+	if err := (cli.NewApp(l)).Run(os.Args); err != nil {
 		return 1, err
 	}
 

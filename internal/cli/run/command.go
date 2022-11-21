@@ -12,27 +12,20 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
-	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/urfave/cli/v2"
 
 	"github.com/tarampampam/poke/internal/js"
 	"github.com/tarampampam/poke/internal/js/events"
 	"github.com/tarampampam/poke/internal/js/printer"
+	"github.com/tarampampam/poke/internal/log"
 )
 
 type command struct {
 	c *cli.Command
 }
 
-var (
-	colorRuns      = text.Colors{text.BgYellow, text.FgHiWhite}
-	colorPass      = text.Colors{text.BgGreen, text.FgHiWhite, text.Bold}
-	colorFail      = text.Colors{text.BgRed, text.FgHiWhite, text.Bold}
-	colorLogPrefix = text.Colors{text.FgWhite, text.Bold}
-)
-
 // NewCommand creates `run` command.
-func NewCommand() *cli.Command { //nolint:funlen
+func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 	const (
 		syncFlagName              = "sync"
 		threadsCountFlagName      = "threads"
@@ -86,11 +79,10 @@ func NewCommand() *cli.Command { //nolint:funlen
 			}
 
 			if len(files) == 0 {
-				return fmt.Errorf(
-					"no valid files was found in %s (check the files path and a shebang in it)",
-					strings.Join(c.Args().Slice(), ", "),
-				)
+				return fmt.Errorf("no files found in %s", strings.Join(c.Args().Slice(), ", "))
 			}
+
+			l.Debug("Found files", log.With("files", files))
 
 			var (
 				wg           sync.WaitGroup
@@ -114,21 +106,22 @@ func NewCommand() *cli.Command { //nolint:funlen
 
 					startedAt := time.Now()
 
-					_, _ = fmt.Fprintf(os.Stdout, "%s %s\n", colorRuns.Sprint(" RUNS "), filePath)
+					l.Info("Running script", log.With("file", filePath))
 
 					ev, runningErr := cmd.RunScript(ctx, filePath, maxScriptExecTime)
 
 					stats.SetDuration(filePath, time.Since(startedAt))
 
 					if runningErr != nil {
+
 						stats.SetError(filePath, runningErr)
-						_, _ = fmt.Fprintf(os.Stderr, "%s %s (%s)\n", colorFail.Sprint(" FAIL "), filePath, runningErr)
+						l.Error("Script execution failed", log.With("file", filePath), log.With("error", runningErr))
 
 						return
 					}
 
 					stats.SetEvents(filePath, ev)
-					_, _ = fmt.Fprintf(os.Stdout, "%s %s\n", colorPass.Sprint(" PASS "), filePath)
+					l.Success("Script executed successfully", log.With("file", filePath))
 				}(filePath)
 			}
 
@@ -187,7 +180,11 @@ func (cmd *command) FindFiles(in []string) ([]string, error) {
 	return files, nil
 }
 
-func (cmd *command) RunScript(pCtx context.Context, filePath string, maxExecTime time.Duration) ([]events.Event, error) {
+func (cmd *command) RunScript(
+	pCtx context.Context,
+	filePath string,
+	maxExecTime time.Duration,
+) ([]events.Event, error) {
 	script, readErr := os.ReadFile(filePath)
 	if readErr != nil {
 		return nil, readErr
@@ -197,7 +194,7 @@ func (cmd *command) RunScript(pCtx context.Context, filePath string, maxExecTime
 	defer cancel()
 
 	interpreter, createErr := js.NewRuntime(ctx, js.WithPrinter(printer.StringPrefixPrinter(
-		colorLogPrefix.Sprintf("%s:\t", filePath),
+		fmt.Sprintf("%s: ", filePath),
 	)))
 
 	if createErr != nil {

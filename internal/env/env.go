@@ -9,6 +9,8 @@ const (
 	ForceColors envVariable = "FORCE_COLOR"
 	NoColors    envVariable = "NO_COLOR" // docs: <https://no-color.org/>
 	Term        envVariable = "TERM"
+
+	LogLevel envVariable = "LOG_LEVEL" // logging level
 )
 
 // String returns environment variable name in the string representation.
