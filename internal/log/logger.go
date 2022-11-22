@@ -144,7 +144,10 @@ func (l *Log) write(w io.Writer, c colors, prefix, sep, msg string, extra ...Ext
 				}
 
 				for j, e := range extra {
-					b.WriteString(c[2].Sprint(e.Key(), ":"))
+					if e.Key() != "" {
+						b.WriteString(c[2].Sprint(e.Key(), ":"))
+					}
+
 					b.WriteString(fmt.Sprint(e.Value()))
 
 					if j < len(extra)-1 {

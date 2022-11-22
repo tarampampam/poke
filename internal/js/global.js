@@ -1,169 +1,169 @@
 /** Simple replacement for the Console implementation. */
-const console = new class {
-  /**
-   * @param {*} v
-   * @return {boolean}
-   */
-  isPromise(v) {
-    return v && typeof v === 'object' && v instanceof Promise
-  }
-
-  /**
-   * @param {*} v
-   * @return {string|number}
-   */
-  fmtValue(v) {
-    const type = typeof v
-
-    switch (typeof v) {
-      case 'function':
-        return `ƒ(…)`
-
-      case 'object':
-        if (Array.isArray(v)) {
-          return '[…]'
-        } else if (this.isPromise(v)) {
-          return '<Promise>'
-        } else if (v === null) {
-          return 'null'
-        }
-        return '{…}'
-
-      case 'string':
-        return `"${v}"`
-
-      case 'number':
-      case 'bigint':
-        return v
-
-      case 'boolean':
-        return v ? 'true' : 'false'
-
-      case 'symbol':
-        return '<Symbol>'
-
-      default:
-        return type
-    }
-  }
-
-  /**
-   * @param {*} v
-   * @return {String}
-   */
-  fmt(...v) {
-    const parts = new Array(v.length)
-
-    for (let i = 0; i < v.length; i++) {
-      const current = v[i]
-
-      switch (true) {
-        case Array.isArray(current):
-          parts[i] = `[${current.map(this.fmtValue).join(', ')}]`
-          break
-
-        case this.isPromise(current):
-          parts[i] = this.fmtValue(current)
-          break
-
-        case current instanceof Error:
-          parts[i] = current.toString()
-          break
-
-        case typeof current === 'object' && current !== null: // watch 1 level deep
-          let props = []
-
-          for (let id in current) {
-            const type = typeof current[id]
-            const value = current[id]
-
-            switch (type) {
-              case 'function':
-                props.unshift(`${id}: ${this.fmtValue(value)}`) // always first
-                break
-
-              default:
-                props.push(`${id}: ${this.fmtValue(value)}`)
-            }
-          }
-
-          parts[i] = `{${props.join(', ')}}`
-          break
-
-        default:
-          parts[i] = this.fmtValue(current)
-      }
-    }
-
-    return parts.join(', ').toString() + '\n'
-  }
-
-  /**
-   * @param {String} logLevel
-   * @return {number}
-   */
-  logLevelToInt(logLevel) {
-    switch (logLevel) {
-      case 'debug':
-        return -1
-
-      case 'info':
-        return 0
-
-      case 'warn':
-        return 1
-
-      case 'error':
-        return 2
-
-      default:
-        return 0  // as an info level
-    }
-  }
-
-  /**
-   * @param {'debug' | 'info' | 'warn' | 'error'} logLevel
-   * @return {boolean}
-   */
-  checkLevel(logLevel) {
-    return this.logLevelToInt(logLevel) >= this.logLevelToInt(io.logLevel())
-  }
-
-  /** Log a message at debug level. */
-  debug(...v) {
-    if (this.checkLevel('debug')) {
-      io.stdOut(this.fmt(...v))
-    }
-  }
-
-  /** Log a message at info level. */
-  log(...v) {
-    if (this.checkLevel('info')) {
-      io.stdOut(this.fmt(...v))
-    }
-  }
-
-  /** Log a message at info level. */
-  info(...v) {
-    if (this.checkLevel('info')) {
-      io.stdOut(this.fmt(...v))
-    }
-  }
-
-  /** Log a message at warn level. */
-  warn(...v) {
-    if (this.checkLevel('warn')) {
-      io.stdOut(this.fmt(...v))
-    }
-  }
-
-  /** Log a message at error level. */
-  error(...v) {
-    if (this.checkLevel('error')) {
-      io.stdErr(this.fmt(...v))
-    }
-  }
-}
+// const console = new class {
+//   /**
+//    * @param {*} v
+//    * @return {boolean}
+//    */
+//   isPromise(v) {
+//     return v && typeof v === 'object' && v instanceof Promise
+//   }
+//
+//   /**
+//    * @param {*} v
+//    * @return {string|number}
+//    */
+//   fmtValue(v) {
+//     const type = typeof v
+//
+//     switch (typeof v) {
+//       case 'function':
+//         return `ƒ(…)`
+//
+//       case 'object':
+//         if (Array.isArray(v)) {
+//           return '[…]'
+//         } else if (this.isPromise(v)) {
+//           return '<Promise>'
+//         } else if (v === null) {
+//           return 'null'
+//         }
+//         return '{…}'
+//
+//       case 'string':
+//         return `"${v}"`
+//
+//       case 'number':
+//       case 'bigint':
+//         return v
+//
+//       case 'boolean':
+//         return v ? 'true' : 'false'
+//
+//       case 'symbol':
+//         return '<Symbol>'
+//
+//       default:
+//         return type
+//     }
+//   }
+//
+//   /**
+//    * @param {*} v
+//    * @return {String}
+//    */
+//   fmt(...v) {
+//     const parts = new Array(v.length)
+//
+//     for (let i = 0; i < v.length; i++) {
+//       const current = v[i]
+//
+//       switch (true) {
+//         case Array.isArray(current):
+//           parts[i] = `[${current.map(this.fmtValue).join(', ')}]`
+//           break
+//
+//         case this.isPromise(current):
+//           parts[i] = this.fmtValue(current)
+//           break
+//
+//         case current instanceof Error:
+//           parts[i] = current.toString()
+//           break
+//
+//         case typeof current === 'object' && current !== null: // watch 1 level deep
+//           let props = []
+//
+//           for (let id in current) {
+//             const type = typeof current[id]
+//             const value = current[id]
+//
+//             switch (type) {
+//               case 'function':
+//                 props.unshift(`${id}: ${this.fmtValue(value)}`) // always first
+//                 break
+//
+//               default:
+//                 props.push(`${id}: ${this.fmtValue(value)}`)
+//             }
+//           }
+//
+//           parts[i] = `{${props.join(', ')}}`
+//           break
+//
+//         default:
+//           parts[i] = this.fmtValue(current)
+//       }
+//     }
+//
+//     return parts.join(', ').toString() + '\n'
+//   }
+//
+//   /**
+//    * @param {String} logLevel
+//    * @return {number}
+//    */
+//   logLevelToInt(logLevel) {
+//     switch (logLevel) {
+//       case 'debug':
+//         return -1
+//
+//       case 'info':
+//         return 0
+//
+//       case 'warn':
+//         return 1
+//
+//       case 'error':
+//         return 2
+//
+//       default:
+//         return 0  // as an info level
+//     }
+//   }
+//
+//   /**
+//    * @param {'debug' | 'info' | 'warn' | 'error'} logLevel
+//    * @return {boolean}
+//    */
+//   checkLevel(logLevel) {
+//     return this.logLevelToInt(logLevel) >= this.logLevelToInt(io.logLevel())
+//   }
+//
+//   /** Log a message at debug level. */
+//   debug(...v) {
+//     if (this.checkLevel('debug')) {
+//       io.stdOut(this.fmt(...v))
+//     }
+//   }
+//
+//   /** Log a message at info level. */
+//   log(...v) {
+//     if (this.checkLevel('info')) {
+//       io.stdOut(this.fmt(...v))
+//     }
+//   }
+//
+//   /** Log a message at info level. */
+//   info(...v) {
+//     if (this.checkLevel('info')) {
+//       io.stdOut(this.fmt(...v))
+//     }
+//   }
+//
+//   /** Log a message at warn level. */
+//   warn(...v) {
+//     if (this.checkLevel('warn')) {
+//       io.stdOut(this.fmt(...v))
+//     }
+//   }
+//
+//   /** Log a message at error level. */
+//   error(...v) {
+//     if (this.checkLevel('error')) {
+//       io.stdErr(this.fmt(...v))
+//     }
+//   }
+// }
 
 /**
  * @internal

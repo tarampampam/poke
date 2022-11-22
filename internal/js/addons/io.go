@@ -10,29 +10,12 @@ import (
 )
 
 type IO struct {
-	runtime  *js.Runtime
-	printer  printer.Printer
-	logLevel string
+	runtime *js.Runtime
+	printer printer.Printer
 }
 
-func NewIO(runtime *js.Runtime, printer printer.Printer, logLevel string) *IO {
-	var lvl = "info"
-
-	switch logLevel {
-	case "debug", "verbose":
-		lvl = "debug"
-
-	case "info":
-		lvl = "info"
-
-	case "warn", "warning":
-		lvl = "warning"
-
-	case "err", "error", "fatal":
-		lvl = "error"
-	}
-
-	return &IO{runtime: runtime, printer: printer, logLevel: lvl}
+func NewIO(runtime *js.Runtime, printer printer.Printer) *IO {
+	return &IO{runtime: runtime, printer: printer}
 }
 
 func (io IO) write(w io.Writer, args ...js.Value) {
@@ -49,7 +32,6 @@ func (io IO) write(w io.Writer, args ...js.Value) {
 
 func (io IO) StdOut(args ...js.Value) { io.write(os.Stdout, args...) }
 func (io IO) StdErr(args ...js.Value) { io.write(os.Stderr, args...) }
-func (io IO) LogLevel() string        { return io.logLevel }
 
 func (io IO) Register(runtime *js.Runtime) error {
 	return runtime.GlobalObject().DefineDataProperty(

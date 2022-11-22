@@ -23,8 +23,6 @@ declare global {
     stdOut(...v: any[]): void
     /** Send something to the errors output. */
     stdErr(...v: any[]): void
-    /** Returns the logging level. */
-    logLevel(): 'debug' | 'info' | 'warn' | 'error' // same as log.Level
   }
 
   /**

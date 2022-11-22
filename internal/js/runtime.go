@@ -11,6 +11,7 @@ import (
 	"github.com/tarampampam/poke/internal/js/addons"
 	"github.com/tarampampam/poke/internal/js/events"
 	"github.com/tarampampam/poke/internal/js/printer"
+	"github.com/tarampampam/poke/internal/log"
 )
 
 //go:embed global.js
@@ -27,10 +28,9 @@ type (
 
 	// Runtime is a wrapper for goja.Runtime.
 	Runtime struct {
-		runtime  *js.Runtime
-		events   chan events.Event
-		printer  printer.Printer
-		logLevel string
+		runtime *js.Runtime
+		events  chan events.Event
+		printer printer.Printer
 
 		closeOnce sync.Once
 	}
@@ -46,18 +46,12 @@ func WithPrinter(p printer.Printer) RuntimeOption {
 	return func(r *Runtime) { r.printer = p }
 }
 
-// WithLogLevel sets up the logging level.
-func WithLogLevel(logLevel string) RuntimeOption {
-	return func(r *Runtime) { r.logLevel = logLevel }
-}
-
 // NewRuntime creates new Runtime instance. Don't forget to close it after usage.
-func NewRuntime(ctx context.Context, options ...RuntimeOption) (*Runtime, error) {
+func NewRuntime(ctx context.Context, log log.Logger, options ...RuntimeOption) (*Runtime, error) {
 	var r = &Runtime{ // defaults
-		runtime:  js.New(),
-		events:   make(chan events.Event, 32), //nolint:gomnd
-		printer:  printer.DefaultPrinter(),
-		logLevel: "info",
+		runtime: js.New(),
+		events:  make(chan events.Event, 32), //nolint:gomnd
+		printer: printer.DefaultPrinter(),
 	}
 
 	r.runtime.SetFieldNameMapper(js.TagFieldNameMapper("json", true))
@@ -67,7 +61,8 @@ func NewRuntime(ctx context.Context, options ...RuntimeOption) (*Runtime, error)
 	}
 
 	for _, addon := range []addonRegisterer{
-		addons.NewIO(r.runtime, r.printer, r.logLevel),
+		addons.NewIO(r.runtime, r.printer),
+		addons.NewConsole(r.runtime, log),
 		addons.NewProcess(ctx),
 		addons.NewFetch(ctx, nil),
 		addons.NewEvents(ctx, r.runtime, r.events),

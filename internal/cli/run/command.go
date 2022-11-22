@@ -111,7 +111,7 @@ func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 
 					l.Info("Running script", log.With("file", filePath))
 
-					ev, runningErr := cmd.RunScript(ctx, l.GetLevel().String(), filePath, maxScriptExecTime)
+					ev, runningErr := cmd.RunScript(ctx, l, filePath, maxScriptExecTime)
 
 					stats.SetDuration(filePath, time.Since(startedAt))
 
@@ -201,7 +201,7 @@ var colorLogPrefix = text.Colors{text.FgWhite} //nolint:gochecknoglobals
 
 func (cmd *command) RunScript( //nolint:funlen
 	pCtx context.Context,
-	logLevel string,
+	log log.Logger,
 	filePath string,
 	maxExecTime time.Duration,
 ) (events.Events, error) {
@@ -215,8 +215,8 @@ func (cmd *command) RunScript( //nolint:funlen
 
 	interpreter, createErr := js.NewRuntime(
 		ctx,
+		log,
 		js.WithPrinter(printer.StringPrefixPrinter(colorLogPrefix.Sprintf("%s: ", filePath))),
-		js.WithLogLevel(logLevel),
 	)
 
 	if createErr != nil {
