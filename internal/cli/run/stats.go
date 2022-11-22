@@ -17,8 +17,9 @@ type scriptRunningStat struct {
 }
 
 type OverallRunningStats struct {
-	mu              sync.Mutex
-	m               map[string]*scriptRunningStat
+	mu sync.Mutex
+	m  map[string]*scriptRunningStat
+
 	summaryDuration time.Duration
 }
 

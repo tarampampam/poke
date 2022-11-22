@@ -1,15 +1,13 @@
-/**
- * @param {*} v
- * @return {boolean}
- */
-const isPromise = (v) => {
-  return v && typeof v === 'object' && v instanceof Promise
-}
-
-/**
- * Simple replacement for the Console implementation.
- */
+/** Simple replacement for the Console implementation. */
 const console = new class {
+  /**
+   * @param {*} v
+   * @return {boolean}
+   */
+  isPromise(v) {
+    return v && typeof v === 'object' && v instanceof Promise
+  }
+
   /**
    * @param {*} v
    * @return {string|number}
@@ -24,7 +22,7 @@ const console = new class {
       case 'object':
         if (Array.isArray(v)) {
           return '[…]'
-        } else if (isPromise(v)) {
+        } else if (this.isPromise(v)) {
           return '<Promise>'
         } else if (v === null) {
           return 'null'
@@ -51,7 +49,7 @@ const console = new class {
 
   /**
    * @param {*} v
-   * @return {Array<string|number>}
+   * @return {String}
    */
   fmt(...v) {
     const parts = new Array(v.length)
@@ -64,7 +62,7 @@ const console = new class {
           parts[i] = `[${current.map(this.fmtValue).join(', ')}]`
           break
 
-        case isPromise(current):
+        case this.isPromise(current):
           parts[i] = this.fmtValue(current)
           break
 
@@ -97,27 +95,73 @@ const console = new class {
       }
     }
 
-    return parts
+    return parts.join(', ').toString() + '\n'
   }
 
-  log(...v) {
-    io.stdOut(this.fmt(...v).join(', ') + '\n')
+  /**
+   * @param {String} logLevel
+   * @return {number}
+   */
+  logLevelToInt(logLevel) {
+    switch (logLevel) {
+      case 'debug':
+        return -1
+
+      case 'info':
+        return 0
+
+      case 'warn':
+        return 1
+
+      case 'error':
+        return 2
+
+      default:
+        return 0  // as an info level
+    }
   }
 
-  error(...v) {
-    io.stdErr(this.fmt(...v).join(', ') + '\n')
+  /**
+   * @param {'debug' | 'info' | 'warn' | 'error'} logLevel
+   * @return {boolean}
+   */
+  checkLevel(logLevel) {
+    return this.logLevelToInt(logLevel) >= this.logLevelToInt(io.logLevel())
   }
 
+  /** Log a message at debug level. */
   debug(...v) {
-    this.log(...v)
+    if (this.checkLevel('debug')) {
+      io.stdOut(this.fmt(...v))
+    }
   }
 
+  /** Log a message at info level. */
+  log(...v) {
+    if (this.checkLevel('info')) {
+      io.stdOut(this.fmt(...v))
+    }
+  }
+
+  /** Log a message at info level. */
   info(...v) {
-    this.log(...v)
+    if (this.checkLevel('info')) {
+      io.stdOut(this.fmt(...v))
+    }
   }
 
+  /** Log a message at warn level. */
   warn(...v) {
-    this.log(...v)
+    if (this.checkLevel('warn')) {
+      io.stdOut(this.fmt(...v))
+    }
+  }
+
+  /** Log a message at error level. */
+  error(...v) {
+    if (this.checkLevel('error')) {
+      io.stdErr(this.fmt(...v))
+    }
   }
 }
 
@@ -135,6 +179,8 @@ const tests = new class {
   afterAll = new Map()
   /** @type {Map<string, Function>} */
   testsQueue = new Map()
+  /** @type {Map<string, Function>} */
+  describeQueue = new Map()
 }
 
 /** Runs a function before any of the tests in this file run. */
@@ -155,8 +201,8 @@ const test = (name, fn) => tests.testsQueue.set(name, fn)
 /** Is an alias for the test() function. */
 const it = (name, fn) => test(name, fn)
 
-/** Is an alias for the test() function. */
-const describe = (name, fn) => test(name, fn)
+/** Creates a block that groups together several related tests. */
+const describe = (name, fn) => tests.describeQueue.set(name, fn)
 
 /**
  * This function will be called at the end of the script execution by the Go runtime.
@@ -164,28 +210,66 @@ const describe = (name, fn) => test(name, fn)
  * @internal
  */
 const __afterScript = () => {
-  if (tests.testsQueue.size > 0) {
-    tests.beforeAll.forEach((fn) => fn())
+  const bootstrapTests = () => {
+    while (tests.describeQueue.size > 0) { // run code inside describe groups
+      const [groupName, describeFn] = tests.describeQueue.entries().next().value
 
-    tests.testsQueue.forEach((fn, name) => {
-      tests.beforeEach.forEach((fn) => fn())
-      fn() // execute test
-      tests.afterEach.forEach((fn) => fn())
-    })
+      tests.describeQueue.delete(groupName)
 
-    tests.afterAll.forEach((fn) => fn())
+      console.debug(`» Running group: ${groupName}`)
+      describeFn()
+    }
+
+    if (tests.testsQueue.size > 0) { // run tests
+      if (tests.beforeAll.size > 0) { // run "before all" hooks (once)
+        console.debug(`Running "before all" hooks (${tests.beforeAll.size})`)
+
+        tests.beforeAll.forEach((fn) => fn())
+        tests.beforeAll.clear()
+      }
+
+      while (tests.testsQueue.size > 0) {
+        const [testName, testFn] = tests.testsQueue.entries().next().value
+
+        tests.testsQueue.delete(testName)
+
+        if (tests.beforeEach.size > 0) { // run "before each test" hooks
+          console.debug(`Running "before each" hooks (${tests.beforeEach.size})`)
+
+          tests.beforeEach.forEach((fn) => fn())
+        }
+
+        console.debug(`> Running test: ${testName}`)
+        testFn()
+
+        if (tests.afterEach.size > 0) { // run "after each test" hooks
+          console.debug(`Running "after each" hooks (${tests.afterEach.size})`)
+
+          tests.afterEach.forEach((fn) => fn())
+        }
+      }
+
+      if (tests.afterAll.size > 0) { // run "after all" hooks (once)
+        console.debug(`Running "after all" hooks (${tests.afterAll.size})`)
+
+        tests.afterAll.forEach((fn) => fn())
+        tests.afterAll.clear()
+      }
+    }
+
+    if (tests.describeQueue.size > 0) {
+      bootstrapTests()
+    }
   }
+
+  bootstrapTests()
 }
 
-/**
- * Assertion functions.
- */
+/** Assertion functions. */
 const assert = new class {
   /**
    * @param {*} mustBeTrue
    * @param {string?} message
-   *
-   * @throws
    */
   true(mustBeTrue, message) {
     if (mustBeTrue === true) {
@@ -196,15 +280,14 @@ const assert = new class {
       message = 'Expected true but got ' + String(mustBeTrue)
     }
 
-    throw new Error(message)
+    events.push({level: 'error', message: 'Assertion failed', error: new Error(message)})
+    // throw new Error(message)
   }
 
   /**
    * @param {*} actual
    * @param {*} expected
    * @param {string?} message
-   *
-   * @throws
    */
   same(actual, expected, message) {
     if (message === undefined) {

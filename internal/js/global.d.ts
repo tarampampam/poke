@@ -23,6 +23,8 @@ declare global {
     stdOut(...v: any[]): void
     /** Send something to the errors output. */
     stdErr(...v: any[]): void
+    /** Returns the logging level. */
+    logLevel(): 'debug' | 'info' | 'warn' | 'error' // same as log.Level
   }
 
   /**
@@ -87,7 +89,6 @@ declare global {
      * Asserts that the value is truthy.
      *
      * @since 0.0.0
-     * @throws
      */
     true(mustBeTrue: unknown, message?: string): void
 
@@ -95,13 +96,17 @@ declare global {
      * Asserts that the values are the same.
      *
      * @since 0.0.0
-     * @throws
      */
     same(actual: unknown, expected: unknown, message?: string): void
   }
 
   /**
    * Runs a function before any of the tests in this file run.
+   *
+   * @example
+   * beforeAll(() => {
+   *   console.log('before all tests in the file')
+   * })
    *
    * @since 0.0.0
    */
@@ -110,6 +115,11 @@ declare global {
   /**
    * Runs a function before each of the tests in this file runs.
    *
+   * @example
+   * beforeEach(() => {
+   *   console.log('before each test')
+   * })
+   *
    * @since 0.0.0
    */
   function beforeEach(fn: () => void): void
@@ -117,12 +127,22 @@ declare global {
   /**
    * Runs a function after each one of the tests in this file completes.
    *
+   * @example
+   * afterEach(() => {
+   *   console.log('after each test')
+   * })
+   *
    * @since 0.0.0
    */
   function afterEach(fn: () => void): void
 
   /**
    * Runs a function after all the tests in this file have completed.
+   *
+   * @example
+   * afterAll(() => {
+   *   console.log('after all tests in the file')
+   * })
    *
    * @since 0.0.0
    */
@@ -151,9 +171,19 @@ declare global {
   function it(name: string, fn: () => void): void
 
   /**
-   * Is an alias for the test() function.
+   * Creates a block that groups together several related tests.
    *
-   * @alias test
+   * @example
+   * describe('boolean tests', () => {
+   *   test('is true', () => {
+   *     assert.true(true)
+   *   })
+   *
+   *   test('is false', () => {
+   *     assert.true(false)
+   *   })
+   * })
+   *
    * @since 0.0.0
    */
   function describe(name: string, fn: () => void): void

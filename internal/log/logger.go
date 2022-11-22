@@ -30,6 +30,12 @@ type (
 
 		// Fatal logs a message at ErrorLevel.
 		Fatal(msg string, v ...Extra)
+
+		// SetLevel sets the log level.
+		SetLevel(lvl Level)
+
+		// GetLevel returns the logging level.
+		GetLevel() Level
 	}
 
 	Extra interface {
@@ -161,6 +167,9 @@ func (l *Log) write(w io.Writer, c colors, prefix, sep, msg string, extra ...Ext
 
 // SetLevel sets the log level.
 func (l *Log) SetLevel(lvl Level) { l.lvl = lvl }
+
+// GetLevel returns the logging level.
+func (l *Log) GetLevel() Level { return l.lvl }
 
 // Debug logs a message at DebugLevel.
 func (l *Log) Debug(msg string, v ...Extra) {

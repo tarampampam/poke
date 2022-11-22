@@ -58,7 +58,7 @@ func ParseLevel(text []byte) (Level, error) {
 		return DebugLevel, nil
 	case "info", "": // make the zero value useful
 		return InfoLevel, nil
-	case "warn":
+	case "warn", "warning":
 		return WarnLevel, nil
 	case "error":
 		return ErrorLevel, nil

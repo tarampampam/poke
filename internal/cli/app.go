@@ -7,14 +7,16 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/urfave/cli/v2"
 
+	"github.com/tarampampam/poke/internal/cli/dts"
 	"github.com/tarampampam/poke/internal/cli/run"
 	"github.com/tarampampam/poke/internal/env"
+	"github.com/tarampampam/poke/internal/js"
 	"github.com/tarampampam/poke/internal/log"
 	"github.com/tarampampam/poke/internal/version"
 )
 
 // NewApp creates new console application.
-func NewApp(l *log.Log) *cli.App {
+func NewApp(l log.Logger) *cli.App {
 	const (
 		logLevelFlagName = "log-level"
 		defaultLogLevel  = log.InfoLevel
@@ -43,6 +45,7 @@ func NewApp(l *log.Log) *cli.App {
 		Version: version.Version(),
 		Commands: []*cli.Command{
 			run.NewCommand(l),
+			dts.NewCommand(js.DTS()),
 		},
 		Flags: []cli.Flag{ // global flags
 			&cli.StringFlag{

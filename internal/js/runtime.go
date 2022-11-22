@@ -19,15 +19,18 @@ var global string
 //go:embed global.d.ts
 var globalDts string
 
+func DTS() string { return globalDts }
+
 type (
 	// RuntimeOption allows to set up some internal Runtime properties from outside.
 	RuntimeOption func(*Runtime)
 
 	// Runtime is a wrapper for goja.Runtime.
 	Runtime struct {
-		runtime *js.Runtime
-		events  chan events.Event
-		printer printer.Printer
+		runtime  *js.Runtime
+		events   chan events.Event
+		printer  printer.Printer
+		logLevel string
 
 		closeOnce sync.Once
 	}
@@ -43,12 +46,18 @@ func WithPrinter(p printer.Printer) RuntimeOption {
 	return func(r *Runtime) { r.printer = p }
 }
 
+// WithLogLevel sets up the logging level.
+func WithLogLevel(logLevel string) RuntimeOption {
+	return func(r *Runtime) { r.logLevel = logLevel }
+}
+
 // NewRuntime creates new Runtime instance. Don't forget to close it after usage.
 func NewRuntime(ctx context.Context, options ...RuntimeOption) (*Runtime, error) {
 	var r = &Runtime{ // defaults
-		runtime: js.New(),
-		events:  make(chan events.Event, 32), //nolint:gomnd
-		printer: printer.DefaultPrinter(),
+		runtime:  js.New(),
+		events:   make(chan events.Event, 32), //nolint:gomnd
+		printer:  printer.DefaultPrinter(),
+		logLevel: "info",
 	}
 
 	r.runtime.SetFieldNameMapper(js.TagFieldNameMapper("json", true))
@@ -58,7 +67,7 @@ func NewRuntime(ctx context.Context, options ...RuntimeOption) (*Runtime, error)
 	}
 
 	for _, addon := range []addonRegisterer{
-		addons.NewIO(r.runtime, r.printer),
+		addons.NewIO(r.runtime, r.printer, r.logLevel),
 		addons.NewProcess(ctx),
 		addons.NewFetch(ctx, nil),
 		addons.NewEvents(ctx, r.runtime, r.events),

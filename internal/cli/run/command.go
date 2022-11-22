@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -90,6 +91,7 @@ func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 				guard        = make(chan struct{}, threadsCount)
 				stats        = NewOverallRunningStats()
 				groupStartAt = time.Now()
+				hasErrors    atomic.Bool
 			)
 
 		runLoop:
@@ -109,7 +111,7 @@ func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 
 					l.Info("Running script", log.With("file", filePath))
 
-					ev, runningErr := cmd.RunScript(ctx, filePath, maxScriptExecTime)
+					ev, runningErr := cmd.RunScript(ctx, l.GetLevel().String(), filePath, maxScriptExecTime)
 
 					stats.SetDuration(filePath, time.Since(startedAt))
 
@@ -121,7 +123,18 @@ func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 					}
 
 					stats.SetEvents(filePath, ev)
-					l.Success("Script executed successfully", log.With("file", filePath))
+
+					if ev.HasEventsWithLevel(events.LevelError) {
+						hasErrors.CompareAndSwap(false, true)
+
+						l.Error(
+							fmt.Sprintf("Completed with errors (%d)", ev.EventsCountWithLevel(events.LevelError)),
+							log.With("file", filePath),
+						)
+					} else {
+						l.Success("Script executed successfully", log.With("file", filePath))
+					}
+
 				}(filePath)
 			}
 
@@ -134,6 +147,10 @@ func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 				return err
 			}
 
+			if hasErrors.Load() {
+				return fmt.Errorf("completed with errors")
+			}
+
 			return nil
 		},
 	}
@@ -141,7 +158,7 @@ func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 	return cmd.c
 }
 
-func (cmd *command) subscribeForSystemSignals(ctx context.Context, fn func(sig os.Signal)) {
+func (cmd *command) subscribeForSystemSignals(ctx context.Context, fn func(os.Signal)) {
 	var sigs = make(chan os.Signal, 1)
 
 	signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -184,9 +201,10 @@ var colorLogPrefix = text.Colors{text.FgWhite} //nolint:gochecknoglobals
 
 func (cmd *command) RunScript( //nolint:funlen
 	pCtx context.Context,
+	logLevel string,
 	filePath string,
 	maxExecTime time.Duration,
-) ([]events.Event, error) {
+) (events.Events, error) {
 	script, readErr := os.ReadFile(filePath)
 	if readErr != nil {
 		return nil, readErr
@@ -195,16 +213,18 @@ func (cmd *command) RunScript( //nolint:funlen
 	ctx, cancel := context.WithTimeout(pCtx, maxExecTime)
 	defer cancel()
 
-	interpreter, createErr := js.NewRuntime(ctx, js.WithPrinter(printer.StringPrefixPrinter(
-		colorLogPrefix.Sprintf("%s: ", filePath),
-	)))
+	interpreter, createErr := js.NewRuntime(
+		ctx,
+		js.WithPrinter(printer.StringPrefixPrinter(colorLogPrefix.Sprintf("%s: ", filePath))),
+		js.WithLogLevel(logLevel),
+	)
 
 	if createErr != nil {
 		return nil, createErr
 	}
 
 	var (
-		buf    = make([]events.Event, 0, 16) //nolint:gomnd // pre-allocation is better than re-allocation
+		buf    = make(events.Events, 0, 16) //nolint:gomnd // pre-allocation is better than re-allocation
 		locker = make(chan struct{})
 	)
 
@@ -222,12 +242,6 @@ func (cmd *command) RunScript( //nolint:funlen
 				}
 
 				buf = append(buf, event)
-
-				if event.Level == events.LevelError {
-					cancel()
-
-					interpreter.Interrupt("error event received")
-				}
 			}
 		}
 	}()
