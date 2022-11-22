@@ -1,170 +1,3 @@
-/** Simple replacement for the Console implementation. */
-// const console = new class {
-//   /**
-//    * @param {*} v
-//    * @return {boolean}
-//    */
-//   isPromise(v) {
-//     return v && typeof v === 'object' && v instanceof Promise
-//   }
-//
-//   /**
-//    * @param {*} v
-//    * @return {string|number}
-//    */
-//   fmtValue(v) {
-//     const type = typeof v
-//
-//     switch (typeof v) {
-//       case 'function':
-//         return `ƒ(…)`
-//
-//       case 'object':
-//         if (Array.isArray(v)) {
-//           return '[…]'
-//         } else if (this.isPromise(v)) {
-//           return '<Promise>'
-//         } else if (v === null) {
-//           return 'null'
-//         }
-//         return '{…}'
-//
-//       case 'string':
-//         return `"${v}"`
-//
-//       case 'number':
-//       case 'bigint':
-//         return v
-//
-//       case 'boolean':
-//         return v ? 'true' : 'false'
-//
-//       case 'symbol':
-//         return '<Symbol>'
-//
-//       default:
-//         return type
-//     }
-//   }
-//
-//   /**
-//    * @param {*} v
-//    * @return {String}
-//    */
-//   fmt(...v) {
-//     const parts = new Array(v.length)
-//
-//     for (let i = 0; i < v.length; i++) {
-//       const current = v[i]
-//
-//       switch (true) {
-//         case Array.isArray(current):
-//           parts[i] = `[${current.map(this.fmtValue).join(', ')}]`
-//           break
-//
-//         case this.isPromise(current):
-//           parts[i] = this.fmtValue(current)
-//           break
-//
-//         case current instanceof Error:
-//           parts[i] = current.toString()
-//           break
-//
-//         case typeof current === 'object' && current !== null: // watch 1 level deep
-//           let props = []
-//
-//           for (let id in current) {
-//             const type = typeof current[id]
-//             const value = current[id]
-//
-//             switch (type) {
-//               case 'function':
-//                 props.unshift(`${id}: ${this.fmtValue(value)}`) // always first
-//                 break
-//
-//               default:
-//                 props.push(`${id}: ${this.fmtValue(value)}`)
-//             }
-//           }
-//
-//           parts[i] = `{${props.join(', ')}}`
-//           break
-//
-//         default:
-//           parts[i] = this.fmtValue(current)
-//       }
-//     }
-//
-//     return parts.join(', ').toString() + '\n'
-//   }
-//
-//   /**
-//    * @param {String} logLevel
-//    * @return {number}
-//    */
-//   logLevelToInt(logLevel) {
-//     switch (logLevel) {
-//       case 'debug':
-//         return -1
-//
-//       case 'info':
-//         return 0
-//
-//       case 'warn':
-//         return 1
-//
-//       case 'error':
-//         return 2
-//
-//       default:
-//         return 0  // as an info level
-//     }
-//   }
-//
-//   /**
-//    * @param {'debug' | 'info' | 'warn' | 'error'} logLevel
-//    * @return {boolean}
-//    */
-//   checkLevel(logLevel) {
-//     return this.logLevelToInt(logLevel) >= this.logLevelToInt(io.logLevel())
-//   }
-//
-//   /** Log a message at debug level. */
-//   debug(...v) {
-//     if (this.checkLevel('debug')) {
-//       io.stdOut(this.fmt(...v))
-//     }
-//   }
-//
-//   /** Log a message at info level. */
-//   log(...v) {
-//     if (this.checkLevel('info')) {
-//       io.stdOut(this.fmt(...v))
-//     }
-//   }
-//
-//   /** Log a message at info level. */
-//   info(...v) {
-//     if (this.checkLevel('info')) {
-//       io.stdOut(this.fmt(...v))
-//     }
-//   }
-//
-//   /** Log a message at warn level. */
-//   warn(...v) {
-//     if (this.checkLevel('warn')) {
-//       io.stdOut(this.fmt(...v))
-//     }
-//   }
-//
-//   /** Log a message at error level. */
-//   error(...v) {
-//     if (this.checkLevel('error')) {
-//       io.stdErr(this.fmt(...v))
-//     }
-//   }
-// }
-
 /**
  * @internal
  */
@@ -181,6 +14,43 @@ const tests = new class {
   testsQueue = new Map()
   /** @type {Map<string, Function>} */
   describeQueue = new Map()
+
+  /**
+   * @param {Map<string|Symbol, Function>} m
+   * @param {function(function, string|Symbol)} executor
+   */
+  reduceMap(m, executor) {
+    while (m.size > 0) {
+      const [name, fn] = m.entries().next().value
+
+      m.delete(name)
+
+      executor(fn, name)
+    }
+  }
+
+  /** Run all the tests. */
+  run() {
+    this.reduceMap(this.describeQueue, (fn) => fn())
+
+    if (this.testsQueue.size > 0) { // run tests
+      this.reduceMap(this.beforeAll, (fn) => fn())
+
+      this.reduceMap(this.testsQueue, (fn, name) => {
+        this.beforeEach.forEach((fn) => fn(name))
+
+        fn()
+
+        this.afterEach.forEach((fn) => fn(name))
+      })
+
+      this.reduceMap(this.afterAll, (fn) => fn())
+    }
+
+    if (this.describeQueue.size > 0) {
+      this.run() // recursive run
+    }
+  }
 }
 
 /** Runs a function before any of the tests in this file run. */
@@ -204,84 +74,91 @@ const it = (name, fn) => test(name, fn)
 /** Creates a block that groups together several related tests. */
 const describe = (name, fn) => tests.describeQueue.set(name, fn)
 
-/**
- * This function will be called at the end of the script execution by the Go runtime.
- *
- * @internal
- */
-const __afterScript = () => {
-  const bootstrapTests = () => {
-    while (tests.describeQueue.size > 0) { // run code inside describe groups
-      const [groupName, describeFn] = tests.describeQueue.entries().next().value
-
-      tests.describeQueue.delete(groupName)
-
-      console.debug(`» Running group: ${groupName}`)
-      describeFn()
-    }
-
-    if (tests.testsQueue.size > 0) { // run tests
-      if (tests.beforeAll.size > 0) { // run "before all" hooks (once)
-        console.debug(`Running "before all" hooks (${tests.beforeAll.size})`)
-
-        tests.beforeAll.forEach((fn) => fn())
-        tests.beforeAll.clear()
-      }
-
-      while (tests.testsQueue.size > 0) {
-        const [testName, testFn] = tests.testsQueue.entries().next().value
-
-        tests.testsQueue.delete(testName)
-
-        if (tests.beforeEach.size > 0) { // run "before each test" hooks
-          console.debug(`Running "before each" hooks (${tests.beforeEach.size})`)
-
-          tests.beforeEach.forEach((fn) => fn())
-        }
-
-        console.debug(`> Running test: ${testName}`)
-        testFn()
-
-        if (tests.afterEach.size > 0) { // run "after each test" hooks
-          console.debug(`Running "after each" hooks (${tests.afterEach.size})`)
-
-          tests.afterEach.forEach((fn) => fn())
-        }
-      }
-
-      if (tests.afterAll.size > 0) { // run "after all" hooks (once)
-        console.debug(`Running "after all" hooks (${tests.afterAll.size})`)
-
-        tests.afterAll.forEach((fn) => fn())
-        tests.afterAll.clear()
-      }
-    }
-
-    if (tests.describeQueue.size > 0) {
-      bootstrapTests()
-    }
-  }
-
-  bootstrapTests()
-}
-
 /** Assertion functions. */
 const assert = new class {
   /**
    * @param {*} mustBeTrue
    * @param {string?} message
+   * @param {boolean?} interrupt
    */
-  true(mustBeTrue, message) {
+  true(mustBeTrue, message, interrupt) {
     if (mustBeTrue === true) {
       return
     }
 
-    if (message === undefined) {
+    if (typeof message !== 'string' || message === "") {
       message = 'Expected true but got ' + String(mustBeTrue)
     }
 
-    events.push({level: 'error', message: 'Assertion failed', error: new Error(message)})
-    // throw new Error(message)
+    console.error(message, mustBeTrue)
+    events.push({level: 'error', message: message})
+
+    if (interrupt === true) {
+      process.interrupt(message)
+    }
+  }
+
+  /**
+   * @param {*} mustBeFalse
+   * @param {string?} message
+   * @param {boolean?} interrupt
+   */
+  false(mustBeFalse, message, interrupt) {
+    if (mustBeFalse === false) {
+      return
+    }
+
+    if (typeof message !== 'string' || message === "") {
+      message = 'Expected false but got ' + String(mustBeFalse)
+    }
+
+    console.error(message, mustBeFalse)
+    events.push({level: 'error', message: message})
+
+    if (interrupt === true) {
+      process.interrupt(message)
+    }
+  }
+
+  /**
+   * @param {*} actual
+   * @param {*} expected
+   * @param {string?} message
+   * @param {boolean?} interrupt
+   */
+  equals(actual, expected, message, interrupt) {
+    if (actual === expected) {
+      return
+    }
+
+    if (typeof message !== 'string' || message === "") {
+      message = String(actual) + ' and ' + String(expected) + ' are not the same'
+    }
+
+    console.error(message, actual, expected)
+    events.push({level: 'error', message: message})
+
+    if (interrupt === true) {
+      process.interrupt(message)
+    }
+  }
+}
+
+const require = new class {
+  /**
+   * @param {*} mustBeTrue
+   * @param {string?} message
+   */
+  true(mustBeTrue, message) {
+    assert.true(mustBeTrue, message, true)
+  }
+
+  /**
+   * @param {*} mustBeFalse
+   * @param {string?} message
+   */
+  false(mustBeFalse, message) {
+    assert.false(mustBeFalse, message, true)
   }
 
   /**
@@ -289,11 +166,16 @@ const assert = new class {
    * @param {*} expected
    * @param {string?} message
    */
-  same(actual, expected, message) {
-    if (message === undefined) {
-      message = String(actual) + ' and ' + String(expected) + ' are not the same'
-    }
-
-    assert.true(actual === expected, message)
+  equals(actual, expected, message) {
+    assert.equals(actual, expected, message, true)
   }
+}
+
+/**
+ * This function will be called at the end of the script execution by the Go runtime.
+ *
+ * @internal
+ */
+const init = () => {
+  tests.run()
 }

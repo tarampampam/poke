@@ -3,20 +3,20 @@ declare global {
    * Holds the process details and common functions.
    *
    * @external go Implemented on the Golang side
-   * @since 0.0.0
    */
   const process: {
     /** Process environment variables. */
     readonly env: { [key: string]: string }
     /** Pause the script execution for the (at least) given number of milliseconds (1000 == 1 sec.). */
     delay(ms: number): void
+    /** Interrupt the script execution. */
+    interrupt(reason?: string): void
   }
 
   /**
    * Interacting with Input/Output.
    *
    * @external go Implemented on the Golang side
-   * @since 0.0.0
    */
   const io: {
     /** Send something to the standard output. */
@@ -29,7 +29,6 @@ declare global {
    * Events are the best way to communicate with the script runner (go-side).
    *
    * @external go Implemented on the Golang side
-   * @since 0.0.0
    */
   const events: {
     /** Send an event to the go-side. */
@@ -47,7 +46,6 @@ declare global {
    * Send an HTTP request (synchronously).
    *
    * @external go Implemented on the Golang side
-   * @since 0.0.0
    */
   function fetchSync(url: string, options?: {
     /** *GET, POST, PUT, DELETE, etc. */
@@ -77,25 +75,28 @@ declare global {
     text(): string
   }
 
-  /**
-   * Assertion functions.
-   *
-   * @since 0.0.0
-   */
+  /** Assertion functions. */
   const assert: {
-    /**
-     * Asserts that the value is truthy.
-     *
-     * @since 0.0.0
-     */
+    /** Asserts that the value is truthy. */
+    true(mustBeTrue: unknown, message?: string, interrupt?: boolean): void
+
+    /** Asserts that the value is falsely. */
+    false(mustBeTrue: unknown, message?: string, interrupt?: boolean): void
+
+    /** Asserts that the values are the same. */
+    equals(actual: unknown, expected: unknown, message?: string, interrupt?: boolean): void
+  }
+
+  /** Assertion functions that interrupt the script on error. */
+  const require: {
+    /** Asserts that the value is truthy. */
     true(mustBeTrue: unknown, message?: string): void
 
-    /**
-     * Asserts that the values are the same.
-     *
-     * @since 0.0.0
-     */
-    same(actual: unknown, expected: unknown, message?: string): void
+    /** Asserts that the value is falsely. */
+    false(mustBeTrue: unknown, message?: string): void
+
+    /** Asserts that the values are the same. */
+    equals(actual: unknown, expected: unknown, message?: string): void
   }
 
   /**
@@ -105,8 +106,6 @@ declare global {
    * beforeAll(() => {
    *   console.log('before all tests in the file')
    * })
-   *
-   * @since 0.0.0
    */
   function beforeAll(fn: () => void): void
 
@@ -117,10 +116,8 @@ declare global {
    * beforeEach(() => {
    *   console.log('before each test')
    * })
-   *
-   * @since 0.0.0
    */
-  function beforeEach(fn: () => void): void
+  function beforeEach(fn: (testName: string) => void): void
 
   /**
    * Runs a function after each one of the tests in this file completes.
@@ -129,10 +126,8 @@ declare global {
    * afterEach(() => {
    *   console.log('after each test')
    * })
-   *
-   * @since 0.0.0
    */
-  function afterEach(fn: () => void): void
+  function afterEach(fn: (testName: string) => void): void
 
   /**
    * Runs a function after all the tests in this file have completed.
@@ -141,8 +136,6 @@ declare global {
    * afterAll(() => {
    *   console.log('after all tests in the file')
    * })
-   *
-   * @since 0.0.0
    */
   function afterAll(fn: () => void): void
 
@@ -155,8 +148,6 @@ declare global {
    * test('response code should be 200', () => {
    *   assert.true(fetchSync('https://cdnjs.com/').status === 200)
    * })
-   *
-   * @since 0.0.0
    */
   function test(name: string, fn: () => void): void
 
@@ -164,7 +155,6 @@ declare global {
    * Is an alias for the test() function.
    *
    * @alias test
-   * @since 0.0.0
    */
   function it(name: string, fn: () => void): void
 
@@ -181,8 +171,6 @@ declare global {
    *     assert.true(false)
    *   })
    * })
-   *
-   * @since 0.0.0
    */
   function describe(name: string, fn: () => void): void
 }

@@ -134,7 +134,6 @@ func NewCommand(l log.Logger) *cli.Command { //nolint:funlen
 					} else {
 						l.Success("Script executed successfully", log.With("file", filePath))
 					}
-
 				}(filePath)
 			}
 

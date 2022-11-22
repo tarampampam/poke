@@ -10,11 +10,13 @@ import (
 )
 
 type Process struct {
-	ctx context.Context
+	ctx     context.Context
+	runtime *js.Runtime
+
 	Env map[string]string `json:"env"`
 }
 
-func NewProcess(ctx context.Context) *Process {
+func NewProcess(ctx context.Context, runtime *js.Runtime) *Process {
 	var (
 		environ = os.Environ()
 		env     = make(map[string]string, len(environ))
@@ -28,7 +30,7 @@ func NewProcess(ctx context.Context) *Process {
 		}
 	}
 
-	return &Process{ctx: ctx, Env: env}
+	return &Process{ctx: ctx, runtime: runtime, Env: env}
 }
 
 // Delay is a helper function for delaying script execution for a given duration.
@@ -49,6 +51,17 @@ func (p Process) Delay(args ...js.Value) {
 		case <-t.C: // do nothing
 		}
 	}
+}
+
+// Interrupt is a helper function for interrupting script execution.
+func (p Process) Interrupt(args ...js.Value) {
+	var reason = "interrupted by the script"
+
+	if len(args) == 1 {
+		reason = args[0].String()
+	}
+
+	p.runtime.Interrupt(reason)
 }
 
 func (p Process) Register(runtime *js.Runtime) error {

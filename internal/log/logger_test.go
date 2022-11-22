@@ -12,26 +12,6 @@ import (
 	"github.com/tarampampam/poke/internal/log"
 )
 
-func TestFoo(t *testing.T) { // TODO delete me
-	var (
-		l     = log.New(log.DebugLevel)
-		extra = []log.Extra{
-			log.With("string", "foo"),
-			log.With("int", 123),
-			log.With("struct", struct{}{}),
-			log.With("slice", []string{"bar"}),
-		}
-	)
-
-	l.Debug("debug msg")
-	l.Info("", extra...)
-	l.Info("info \nmsginfo \nmsginfo \nmsginfo \nmsginfo \nmsg", extra...)
-	l.Success("success msg", extra...)
-	l.Warn("warn msg", extra...)
-	l.Error("error msg", extra...)
-	l.Fatal("fatal msg", extra...)
-}
-
 func TestLog_Debug(t *testing.T) {
 	text.DisableColors()
 	defer text.EnableColors()

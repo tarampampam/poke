@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	js "github.com/dop251/goja"
-	"github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/tarampampam/poke/internal/log"
 )
@@ -25,53 +25,54 @@ func NewConsole(runtime *js.Runtime, log log.Logger) *Console {
 	}
 }
 
-func (c *Console) toJSON(in any) string {
-	if in == nil {
-		return "null"
-	}
-
-	j, err := c.json.Marshal(in)
-	if err == nil {
-		return string(j)
-	}
-
-	return fmt.Sprintf("cannot convert passed value to json (%s)", err.Error())
-}
-
 var (
-	typePromise      = reflect.TypeOf((*js.Promise)(nil))
-	typeSymbol       = reflect.TypeOf((*js.Symbol)(nil))
-	typeFunctionCall = reflect.TypeOf((*js.FunctionCall)(nil))
+	typePromise      = reflect.TypeOf((*js.Promise)(nil))      //nolint:gochecknoglobals
+	typeSymbol       = reflect.TypeOf((*js.Symbol)(nil))       //nolint:gochecknoglobals
+	typeFunctionCall = reflect.TypeOf((*js.FunctionCall)(nil)) //nolint:gochecknoglobals
 )
+
+func (c *Console) valueToString(v any, kind reflect.Kind) string {
+	if v == nil {
+		return "null"
+	} else if s, ok := v.(string); ok {
+		return s
+	}
+
+	switch kind { //nolint:exhaustive
+	case typePromise.Kind():
+		return "<Promise>"
+
+	case typeSymbol.Kind():
+		return "<Symbol>"
+
+	case typeFunctionCall.Kind(), reflect.Func:
+		return "ƒ(…)"
+
+	case reflect.Pointer, reflect.UnsafePointer:
+		return "<pointer>"
+
+	default:
+		if j, err := c.json.Marshal(v); err == nil {
+			return string(j)
+		} else {
+			return fmt.Sprintf("cannot convert passed value to json (%s)", err.Error())
+		}
+	}
+}
 
 func (c *Console) format(args []js.Value) (message string, extra []log.Extra) {
 	if len(args) > 0 {
 		if str, ok := args[0].Export().(string); ok {
 			message = str
+		} else if len(args) == 1 {
+			message = c.valueToString(args[0].Export(), args[0].ExportType().Kind())
 		}
 
 		if len(args) > 1 {
 			extra = make([]log.Extra, len(args)-1)
 
 			for i, arg := range args[1:] {
-				iStr := strconv.Itoa(i)
-
-				switch arg.ExportType().Kind() {
-				case typePromise.Kind():
-					extra[i] = log.With(iStr, "<Promise>")
-
-				case typeSymbol.Kind():
-					extra[i] = log.With(iStr, "<Symbol>")
-
-				case typeFunctionCall.Kind(), reflect.Func:
-					extra[i] = log.With(iStr, "ƒ(…)")
-
-				case reflect.Pointer, reflect.UnsafePointer:
-					extra[i] = log.With(iStr, "<pointer>")
-
-				default:
-					extra[i] = log.With(iStr, c.toJSON(arg.Export()))
-				}
+				extra[i] = log.With(strconv.Itoa(i), c.valueToString(arg.Export(), arg.ExportType().Kind()))
 			}
 		}
 	}
