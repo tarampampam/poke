@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	js "github.com/dop251/goja"
+	"github.com/dop251/goja/parser"
 	"github.com/pkg/errors"
 
 	"github.com/tarampampam/poke/internal/js/addons"
@@ -55,6 +56,7 @@ func NewRuntime(ctx context.Context, log log.Logger, options ...RuntimeOption) (
 	}
 
 	r.runtime.SetFieldNameMapper(js.TagFieldNameMapper("json", true))
+	r.runtime.SetParserOptions(parser.WithDisableSourceMaps)
 
 	for _, opt := range options {
 		opt(r)
@@ -66,6 +68,7 @@ func NewRuntime(ctx context.Context, log log.Logger, options ...RuntimeOption) (
 		addons.NewProcess(ctx, r.runtime),
 		addons.NewFetch(ctx, nil),
 		addons.NewEvents(ctx, r.runtime, r.events),
+		addons.NewFaker(r.runtime),
 	} {
 		if err := addon.Register(r.runtime); err != nil {
 			r.Close()

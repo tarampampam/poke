@@ -1,8 +1,8 @@
 #!/usr/bin/env poke run
 
 beforeAll(() => console.log('> before all'))
-beforeEach((testName) => console.log(`>> before ${testName}`))
-afterEach((testName) => console.log(`<< after ${testName}`))
+beforeEach((testName) => console.log(`>> before test "${testName}"`))
+afterEach((testName) => console.log(`<< after test "${testName}"`))
 afterAll(() => console.log('< after all'))
 
 describe('boolean values', () => {

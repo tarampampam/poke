@@ -75,14 +75,28 @@ declare global {
     text(): string
   }
 
+  /**
+   * Helper functions to generate a faked data.
+   *
+   * @external go Implemented on the Golang side
+   */
+  const faker: {
+    /** Return a random bool. */
+    bool(): boolean
+    /** Return a random falsy value. */
+    falsy(): false, null, undefined, 0, NaN, ''
+    /** Return a random character (a-zA-Z0-9 by default). */
+    character(options?: {pool: string}): string
+    /** Return a random floating point number */
+    floating(): number
+  }
+
   /** Assertion functions. */
   const assert: {
     /** Asserts that the value is truthy. */
     true(mustBeTrue: unknown, message?: string, interrupt?: boolean): void
-
     /** Asserts that the value is falsely. */
     false(mustBeTrue: unknown, message?: string, interrupt?: boolean): void
-
     /** Asserts that the values are the same. */
     equals(actual: unknown, expected: unknown, message?: string, interrupt?: boolean): void
   }
@@ -91,10 +105,8 @@ declare global {
   const require: {
     /** Asserts that the value is truthy. */
     true(mustBeTrue: unknown, message?: string): void
-
     /** Asserts that the value is falsely. */
     false(mustBeTrue: unknown, message?: string): void
-
     /** Asserts that the values are the same. */
     equals(actual: unknown, expected: unknown, message?: string): void
   }

@@ -27,29 +27,40 @@ func NewConsole(runtime *js.Runtime, log log.Logger) *Console {
 
 var (
 	typePromise      = reflect.TypeOf((*js.Promise)(nil))      //nolint:gochecknoglobals
-	typeSymbol       = reflect.TypeOf((*js.Symbol)(nil))       //nolint:gochecknoglobals
 	typeFunctionCall = reflect.TypeOf((*js.FunctionCall)(nil)) //nolint:gochecknoglobals
 )
 
-func (c *Console) valueToString(v any, kind reflect.Kind) string {
+func (c *Console) valueToString(v js.Value) string {
 	if v == nil {
 		return "null"
-	} else if s, ok := v.(string); ok {
+	} else if s, ok := v.Export().(string); ok {
 		return s
 	}
 
-	switch kind { //nolint:exhaustive
+	switch {
+	case js.IsUndefined(v):
+		return "undefined"
+
+	case js.IsNull(v):
+		return "null"
+
+	case js.IsNaN(v):
+		return "NaN"
+
+	case js.IsInfinity(v):
+		return "Infinity"
+	}
+
+	if v.ExportType() == nil {
+		return fmt.Sprintf("%v", v)
+	}
+
+	switch v.ExportType().Kind() { //nolint:exhaustive
 	case typePromise.Kind():
 		return "<Promise>"
 
-	case typeSymbol.Kind():
-		return "<Symbol>"
-
 	case typeFunctionCall.Kind(), reflect.Func:
 		return "ƒ(…)"
-
-	case reflect.Pointer, reflect.UnsafePointer:
-		return "<pointer>"
 
 	default:
 		if j, err := c.json.Marshal(v); err == nil {
@@ -65,14 +76,14 @@ func (c *Console) format(args []js.Value) (message string, extra []log.Extra) {
 		if str, ok := args[0].Export().(string); ok {
 			message = str
 		} else if len(args) == 1 {
-			message = c.valueToString(args[0].Export(), args[0].ExportType().Kind())
+			message = c.valueToString(args[0])
 		}
 
 		if len(args) > 1 {
 			extra = make([]log.Extra, len(args)-1)
 
 			for i, arg := range args[1:] {
-				extra[i] = log.With(strconv.Itoa(i), c.valueToString(arg.Export(), arg.ExportType().Kind()))
+				extra[i] = log.With(strconv.Itoa(i), c.valueToString(arg))
 			}
 		}
 	}

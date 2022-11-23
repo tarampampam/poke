@@ -68,9 +68,13 @@ func WithStdOut(w io.Writer) Option { return func(l *Log) { l.stdOut = w } }
 // WithStdErr sets the writer for the error output.
 func WithStdErr(w io.Writer) Option { return func(l *Log) { l.stdErr = w } }
 
+// WithoutPrefix logs a messages without the prefix.
+func WithoutPrefix() Option { return func(l *Log) { l.withoutPrefix = true } }
+
 // Log is a logger that logs messages at specified level.
 type Log struct {
-	lvl Level
+	lvl           Level
+	withoutPrefix bool
 
 	mu     sync.Mutex
 	stdOut io.Writer
@@ -134,8 +138,11 @@ func (l *Log) write(w io.Writer, c colors, prefix, sep, msg string, extra ...Ext
 
 	for i, line := range msgLines {
 		if i == 0 { //nolint:nestif
-			b.WriteString(c[0].Sprint(prefix))
-			b.WriteString(sep)
+			if !l.withoutPrefix {
+				b.WriteString(c[0].Sprint(prefix))
+				b.WriteString(sep)
+			}
+
 			b.WriteString(c[1].Sprint(line))
 
 			if len(extra) > 0 {
@@ -157,8 +164,10 @@ func (l *Log) write(w io.Writer, c colors, prefix, sep, msg string, extra ...Ext
 			}
 		} else {
 			b.WriteRune('\n')
-			b.WriteString(c[0].Sprint(strings.Repeat(" ", len(prefix))))
-			b.WriteString(sep)
+			if !l.withoutPrefix {
+				b.WriteString(c[0].Sprint(strings.Repeat(" ", len(prefix))))
+				b.WriteString(sep)
+			}
 			b.WriteString(c[1].Sprint(line))
 		}
 	}
