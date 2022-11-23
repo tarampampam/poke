@@ -58,16 +58,16 @@ func (f Faker) Falsy() js.Value {
 }
 
 // Character returns a random character.
-func (f Faker) Character(call js.FunctionCall) js.Value {
-	if len(call.Arguments) == 1 {
-		if poolOption := call.Argument(0).ToObject(f.runtime).Get("pool"); poolOption != nil {
+func (f Faker) Character(args ...js.Value) string {
+	if len(args) == 1 {
+		if poolOption := args[0].ToObject(f.runtime).Get("pool"); poolOption != nil {
 			var pool = []rune(poolOption.String())
 
-			return f.runtime.ToValue(string(pool[f.rnd.Intn(len(pool))]))
+			return string(pool[f.rnd.Intn(len(pool))])
 		}
 	}
 
-	return f.runtime.ToValue(string(characters[f.rnd.Intn(len(characters))]))
+	return string(characters[f.rnd.Intn(len(characters))])
 }
 
 // Floating returns a random floating point number.
