@@ -71,6 +71,7 @@ func NewRuntime(ctx context.Context, log log.Logger, options ...RuntimeOption) (
 		addons.NewEvents(ctx, r.runtime, r.events),
 		addons.NewFaker(r.runtime),
 		addons.NewEncoding(r.runtime),
+		addons.NewHashing(r.runtime),
 	} {
 		if err := addon.Register(r.runtime); err != nil {
 			r.Close()

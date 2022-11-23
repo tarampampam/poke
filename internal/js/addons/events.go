@@ -47,12 +47,10 @@ func (e *Events) Push(args ...js.Value) {
 			event.Error = errors.New(err.String())
 		}
 
-		go func() {
-			select {
-			case <-e.ctx.Done():
-			case e.channel <- event:
-			}
-		}()
+		select {
+		case <-e.ctx.Done():
+		case e.channel <- event:
+		}
 	}
 }
 

@@ -1,3 +1,33 @@
+interface FetchSyncOptions {
+  /** Request method (`GET` by default) */
+  method?: 'GET' | 'HAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'CONNECT' | 'OPTIONS' | 'TRACE'
+  /** Request headers map. */
+  headers?: Record<string, string>
+  /** Request body. Body data type must match "Content-Type" header. */
+  body?: string
+}
+
+interface FetchSyncResponse {
+  /** Body contents. */
+  readonly body: string
+  /** Response headers map. */
+  readonly headers: Record<string, string>
+  /** A boolean indicating whether the response was successful (status in the range 200 – 299) or not. */
+  readonly ok: boolean
+  /** The status code of the response. */
+  readonly status: number
+  /** The status message corresponding to the status code. */
+  readonly statusText: string
+  /** The URL of the response. */
+  readonly url: string
+  /** Returns body data as an ArrayBuffer */
+  arrayBuffer(): ArrayBuffer
+  /** Returns a result of parsing the response body text as JSON. */
+  json(): unknown
+  /** Returns a text representation of the response body */
+  text(): string
+}
+
 declare global {
   /**
    * Holds the process details and common functions.
@@ -42,38 +72,39 @@ declare global {
     }[]): void
   }
 
+  // @ts-ignore
+  const console: {
+    /** Log a message with debug level. */
+    debug(...data: unknown[]): void
+    /** Log a message with info level. */
+    log(...data: unknown[]): void
+    /** Log a message with info level. */
+    info(...data: unknown[]): void
+    /** Log a message with warning level. */
+    warn(...data: unknown[]): void
+    /** Log a message with error level. */
+    error(...data: unknown[]): void
+  }
+
   /**
    * Send an HTTP request (synchronously).
    *
    * @external go Implemented on the Golang side
    */
-  function fetchSync(url: string, options?: {
-    /** *GET, POST, PUT, DELETE, etc. */
-    method?: string
-    /** Request headers map. */
-    headers?: Record<string, string>
-    /** Request body. Body data type must match "Content-Type" header. */
-    body?: string
-  }): {
-    /** Body contents. */
-    readonly body: string
-    /** Response headers map. */
-    readonly headers: Record<string, string>
-    /** A boolean indicating whether the response was successful (status in the range 200 – 299) or not. */
-    readonly ok: boolean
-    /** The status code of the response. */
-    readonly status: number
-    /** The status message corresponding to the status code. */
-    readonly statusText: string
-    /** The URL of the response. */
-    readonly url: string
-    /** Returns body data as an ArrayBuffer */
-    arrayBuffer(): ArrayBuffer
-    /** Returns a result of parsing the response body text as JSON. */
-    json(): unknown
-    /** Returns a text representation of the response body */
-    text(): string
-  }
+  function fetchSync(url: string, options?: FetchSyncOptions): FetchSyncResponse
+
+  /** Send HTTP request by GET method. */
+  function get(url: string, options?: FetchSyncOptions): FetchSyncResponse
+  /** Send HTTP request by POST method. */
+  function post(url: string, options?: FetchSyncOptions): FetchSyncResponse
+  /** Send HTTP request by PUT method. */
+  function put(url: string, options?: FetchSyncOptions): FetchSyncResponse
+  /** Send HTTP request by DELETE method. */
+  function del(url: string, options?: FetchSyncOptions): FetchSyncResponse
+  /** Send HTTP request by PATCH method. */
+  function patch(url: string, options?: FetchSyncOptions): FetchSyncResponse
+  /** Send HTTP request by HEAD method. */
+  function head(url: string, options?: FetchSyncOptions): FetchSyncResponse
 
   /**
    * Encoding helper functions.
@@ -85,6 +116,18 @@ declare global {
     base64encode(s: string, options?: {mode: 'std' | 'url'}): string
     /** Decode a base64 string (`std` mode us used by default). `undefined` will be returned on malformed input. */
     base64decode(encoded: string, options?: {mode: 'std' | 'url'}): string | undefined
+  }
+
+  /**
+   * Hashing helper functions.
+   *
+   * @external go Implemented on the Golang side
+   */
+  const hashing: {
+    /** Calculate a MD5 hash of the given string. */
+    md5(s: string): string
+    /** Calculate a Sha256 hash of the given string. */
+    sha256(s: string): string
   }
 
   /**
@@ -141,20 +184,28 @@ declare global {
     false(mustBeTrue: unknown, message?: string, interrupt?: boolean): void
     /** Asserts that the values are the same. */
     equals(actual: unknown, expected: unknown, message?: string, interrupt?: boolean): void
+    /** Asserts that the values are not the same. */
+    notEquals(actual: unknown, expected: unknown, message?: string, interrupt?: boolean): void
     /** Asserts that the specified object is empty. */
     empty(object: unknown, message?: string, interrupt?: boolean): void
+    /** Asserts that the specified object is not empty. */
+    notEmpty(object: unknown, message?: string, interrupt?: boolean): void
   }
 
   /** Assertion functions that interrupt the script on error. */
-  const require: {
+  const mustBe: {
     /** Asserts that the value is truthy. */
     true(mustBeTrue: unknown, message?: string): void
     /** Asserts that the value is falsely. */
     false(mustBeTrue: unknown, message?: string): void
     /** Asserts that the values are the same. */
     equals(actual: unknown, expected: unknown, message?: string): void
+    /** Asserts that the values are not the same. */
+    notEquals(actual: unknown, expected: unknown, message?: string): void
     /** Asserts that the specified object is empty. */
     empty(object: unknown, message?: string): void
+    /** Asserts that the specified object is not empty. */
+    notEmpty(object: unknown, message?: string): void
   }
 
   /**

@@ -19,14 +19,14 @@ func TestEvents_Push(t *testing.T) {
 		addon   = addons.NewEvents(context.Background(), runtime, channel)
 	)
 
-	addon.Push(runtime.ToValue(map[string]any{}))
+	go addon.Push(runtime.ToValue(map[string]any{}))
 
 	event := <-channel
 
 	assert.Equal(t, events.LevelDebug, event.Level)
 	assert.Empty(t, event.Message)
 
-	addon.Push(runtime.ToValue(map[string]any{"level": "info", "message": "foo1", "error": "bar"}))
+	go addon.Push(runtime.ToValue(map[string]any{"level": "info", "message": "foo1", "error": "bar"}))
 
 	event = <-channel
 

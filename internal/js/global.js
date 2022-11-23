@@ -1,6 +1,17 @@
-/**
- * @internal
- */
+/** Send HTTP request by GET method. */
+const get = (url, options) => fetchSync(url, {method: 'GET', ...options})
+/** Send HTTP request by POST method. */
+const post = (url, options) => fetchSync(url, {method: 'POST', ...options})
+/** Send HTTP request by PUT method. */
+const put = (url, options) => fetchSync(url, {method: 'PUT', ...options})
+/** Send HTTP request by DELETE method. */
+const del = (url, options) => fetchSync(url, {method: 'DELETE', ...options})
+/** Send HTTP request by PATCH method. */
+const patch = (url, options) => fetchSync(url, {method: 'PATCH', ...options})
+/** Send HTTP request by HEAD method. */
+const head = (url, options) => fetchSync(url, {method: 'HEAD', ...options})
+
+/** @internal */
 const tests = new class {
   /** @type {Map<Symbol, Function>} */
   beforeAll = new Map()
@@ -51,6 +62,81 @@ const tests = new class {
       this.run() // recursive run
     }
   }
+
+  /**
+   * @param {*} object
+   * @returns {boolean}
+   */
+  isEmpty(object) {
+    if (!object) {
+      return true
+    }
+
+    switch (typeof object) {
+      case 'undefined':
+        return true
+
+      case 'string' && object === "":
+        return true
+
+      case 'boolean' && object === false:
+        return true
+
+      case 'number' && object === 0:
+        return true
+
+      case 'bigint' && object === 0:
+        return true
+
+      case 'object' && object === null:
+        return true
+
+      case 'object': {
+        if (object !== null) {
+          switch (true) {
+            case Array.isArray(object) && object.length === 0: // empty array
+              return true
+
+            case object instanceof Date && Number.isNaN(object.getTime()): // is invalid date
+              return true
+
+            case object.constructor === Object && Object.keys(object).length === 0: // empty collection
+              return true
+
+            case object instanceof Set && object.size === 0: // empty set
+              return true
+
+            case object instanceof Map && object.size === 0: // empty map
+              return true
+          }
+        }
+      }
+    }
+
+    return false
+  }
+
+  /**
+   * @param {*} message
+   * @return {boolean}
+   */
+  notEmptyString(message) {
+    return typeof message === 'string' && message.trim() !== ""
+  }
+
+  /**
+   * @param {string} message
+   * @param {boolean} interrupt
+   * @param {*[]} consoleArgs
+   */
+  triggerError(message, interrupt, ...consoleArgs) {
+    console.error(message, ...consoleArgs)
+    events.push({level: 'error', message: message})
+
+    if (interrupt === true) {
+      process.interrupt(message)
+    }
+  }
 }
 
 /** Runs a function before any of the tests in this file run. */
@@ -86,16 +172,11 @@ const assert = new class {
       return
     }
 
-    if (typeof message !== 'string' || message === "") {
-      message = 'Expected true but got ' + String(mustBeTrue)
-    }
+    message = tests.notEmptyString(message)
+      ? message
+      : 'Expected true but got ' + String(mustBeTrue)
 
-    console.error(message, mustBeTrue)
-    events.push({level: 'error', message: message})
-
-    if (interrupt === true) {
-      process.interrupt(message)
-    }
+    tests.triggerError(message, interrupt, mustBeTrue)
   }
 
   /**
@@ -108,16 +189,11 @@ const assert = new class {
       return
     }
 
-    if (typeof message !== 'string' || message === "") {
-      message = 'Expected false but got ' + String(mustBeFalse)
-    }
+    message = tests.notEmptyString(message)
+      ? message
+      : 'Expected false but got ' + String(mustBeFalse)
 
-    console.error(message, mustBeFalse)
-    events.push({level: 'error', message: message})
-
-    if (interrupt === true) {
-      process.interrupt(message)
-    }
+    tests.triggerError(message, interrupt, mustBeFalse)
   }
 
   /**
@@ -131,16 +207,29 @@ const assert = new class {
       return
     }
 
-    if (typeof message !== 'string' || message === "") {
-      message = String(actual) + ' and ' + String(expected) + ' are not the same'
+    message = tests.notEmptyString(message)
+      ? message
+      : String(actual) + ' and ' + String(expected) + ' are not the same'
+
+    tests.triggerError(message, interrupt, actual, expected)
+  }
+
+  /**
+   * @param {*} actual
+   * @param {*} expected
+   * @param {string?} message
+   * @param {boolean?} interrupt
+   */
+  notEquals(actual, expected, message, interrupt) {
+    if (actual !== expected) {
+      return
     }
 
-    console.error(message, actual, expected)
-    events.push({level: 'error', message: message})
+    message = tests.notEmptyString(message)
+      ? message
+      : String(actual) + ' and ' + String(expected) + ' are the same, but they should not be'
 
-    if (interrupt === true) {
-      process.interrupt(message)
-    }
+    tests.triggerError(message, interrupt, actual, expected)
   }
 
   /**
@@ -149,65 +238,36 @@ const assert = new class {
    * @param {boolean?} interrupt
    */
   empty(object, message, interrupt) {
-    if (!object) {
+    if (tests.isEmpty(object)) {
       return
     }
 
-    switch (typeof object) {
-      case 'undefined':
-        return
+    message = tests.notEmptyString(message)
+      ? message
+      : String(object) + ' is not empty'
 
-      case 'string' && object === "":
-        return
+    tests.triggerError(message, interrupt, object)
+  }
 
-      case 'boolean' && object === false:
-        return
-
-      case 'number' && object === 0:
-        return
-
-      case 'bigint' && object === 0:
-        return
-
-      case 'object' && object === null:
-        return
-
-      case 'object': {
-        if (object !== null) {
-          switch (true) {
-            case Array.isArray(object) && object.length === 0: // empty array
-              return
-
-            case Object.keys(object).length === 0: // empty collection
-              return
-
-            case object instanceof Date && Number.isNaN(object.getTime()): // is invalid date
-              return
-
-            case object instanceof Set && object.size === 0: // empty set
-              return
-
-            case object instanceof Map && object.size === 0: // empty map
-              return
-          }
-        }
-      }
+  /**
+   * @param {*} object
+   * @param {string?} message
+   * @param {boolean?} interrupt
+   */
+  notEmpty(object, message, interrupt) {
+    if (!tests.isEmpty(object)) {
+      return
     }
 
-    if (typeof message !== 'string' || message === "") {
-      message = String(object) + ' is not empty'
-    }
+    message = tests.notEmptyString(message)
+      ? message
+      : String(object) + ' is empty, but should not be'
 
-    console.error(message, object)
-    events.push({level: 'error', message: message})
-
-    if (interrupt === true) {
-      process.interrupt(message)
-    }
+    tests.triggerError(message, interrupt, object)
   }
 }
 
-const require = new class {
+const mustBe = new class {
   /**
    * @param {*} mustBeTrue
    * @param {string?} message
@@ -234,11 +294,28 @@ const require = new class {
   }
 
   /**
+   * @param {*} actual
+   * @param {*} expected
+   * @param {string?} message
+   */
+  notEquals(actual, expected, message) {
+    assert.notEquals(actual, expected, message, true)
+  }
+
+  /**
    * @param {*} object
    * @param {string?} message
    */
   empty(object, message) {
     assert.empty(object, message, true)
+  }
+
+  /**
+   * @param {*} object
+   * @param {string?} message
+   */
+  notEmpty(object, message) {
+    assert.notEmpty(object, message, true)
   }
 }
 

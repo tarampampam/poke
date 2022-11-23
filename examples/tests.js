@@ -9,7 +9,7 @@ describe('boolean values', () => {
   test('true', () => assert.true(true))
 
   it('false', () => {
-    require.false(false)
+    mustBe.false(false)
   })
 })
 
@@ -17,7 +17,38 @@ describe('strings', () => {
   test('equals', () => assert.equals('bar', 'bar'))
 
   describe('sub-strings', () => {
-    test('length', () => require.true('foo'.length === 3))
-    test('numbers', () => require.equals(1, 1))
+    test('length', () => mustBe.true('foo'.length === 3))
+    test('numbers', () => mustBe.equals(1, 1))
+
+    for (const value of [
+      [],
+      {},
+      false,
+      null,
+      undefined,
+      "",
+      0,
+      NaN,
+      new Map(),
+      new Set(),
+      new Date('invalid'),
+    ]) {
+      assert.empty(value)
+    }
+
+    for (const value of [
+      [1],
+      {foo: 'bar'},
+      [undefined],
+      1,
+      "string",
+      true,
+      Symbol(),
+      () => {},
+      new Date(),
+      new Promise(() => {})
+    ]) {
+      assert.notEmpty(value)
+    }
   })
 })

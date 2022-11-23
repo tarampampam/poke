@@ -217,7 +217,6 @@ func (cmd *command) RunScript( //nolint:funlen
 		log,
 		js.WithPrinter(printer.StringPrefixPrinter(colorLogPrefix.Sprintf("%s: ", filePath))),
 	)
-
 	if createErr != nil {
 		return nil, createErr
 	}

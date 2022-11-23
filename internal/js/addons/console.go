@@ -73,11 +73,7 @@ func (c *Console) valueToString(v js.Value) string {
 
 func (c *Console) format(args []js.Value) (message string, extra []log.Extra) {
 	if len(args) > 0 {
-		if str, ok := args[0].Export().(string); ok {
-			message = str
-		} else if len(args) == 1 {
-			message = c.valueToString(args[0])
-		}
+		message = c.valueToString(args[0])
 
 		if len(args) > 1 {
 			extra = make([]log.Extra, len(args)-1)
