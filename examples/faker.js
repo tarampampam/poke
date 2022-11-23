@@ -24,4 +24,5 @@ console.log(JSON.stringify({
   hash: faker.hash(), // 3ab26351d4c9309899075dd8a854b916ab7ac398
   hashLength: faker.hash({length: 8}), // 4ca57fc7
   uuid: faker.uuid(), // 296fdaf7-9ac0-446a-a59e-fcac325b3c2d
+  random: faker.random(1, 2, 'asd', false), // 2
 }, undefined, 2))

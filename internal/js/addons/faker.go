@@ -199,6 +199,15 @@ func (f Faker) Hash(args ...js.Value) string {
 // Uuid returns a random UUID.
 func (f Faker) Uuid() string { return faker.UUIDHyphenated() }
 
+// Random returns a randomly picked argument.
+func (f Faker) Random(args ...js.Value) js.Value {
+	if len(args) > 0 {
+		return args[f.rnd.Intn(len(args))]
+	}
+
+	return js.Undefined()
+}
+
 func (f Faker) Register(runtime *js.Runtime) error {
 	return runtime.GlobalObject().DefineDataProperty(
 		"faker",

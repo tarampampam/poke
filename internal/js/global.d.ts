@@ -81,42 +81,44 @@ declare global {
    * @external go Implemented on the Golang side
    */
   const faker: {
-    /** Return a random bool. */
+    /** Returns a random bool. */
     bool(): boolean
-    /** Return a random falsy value. */
+    /** Returns a random falsy value. */
     falsy(): false, null, undefined, 0, NaN, ''
-    /** Return a random character (a-zA-Z0-9 by default). */
+    /** Returns a random character (a-zA-Z0-9 by default). */
     character(options?: {pool: string}): string
-    /** Return a random floating point number. */
+    /** Returns a random floating point number. */
     floating(): number
-    /** Return a random integer (-9007199254740991 to 9007199254740991 by default). */
+    /** Returns a random integer (-9007199254740991 to 9007199254740991 by default). */
     integer(options?: {min?: number, max?: number}): number
-    /** Return a random letter (one of "abcdefghijklmnopqrstuvwxyz"). */
+    /** Returns a random letter (one of "abcdefghijklmnopqrstuvwxyz"). */
     letter(): string
-    /** Return a random string. */
+    /** Returns a random string. */
     string(options?: {length?: number, pool?: string}): string
-    /** Return a random paragraph generated from sentences populated by semi-pronounceable random (nonsense) words. */
+    /** Returns a random paragraph generated from sentences populated by semi-pronounceable random (nonsense) words. */
     paragraph(): string
-    /** Return a semi-pronounceable random (nonsense) word. */
+    /** Returns a semi-pronounceable random (nonsense) word. */
     word(): string
-    /** Return a random domain with a random tld (like `foobar.org`). */
+    /** Returns a random domain with a random tld (like `foobar.org`). */
     domain(): string
-    /** Return a random email with a random domain. */
+    /** Returns a random email with a random domain. */
     email(): string
-    /** Return a random IPv4 Address. */
+    /** Returns a random IPv4 Address. */
     ip(): string
-    /** Return a random IPv6 Address. */
+    /** Returns a random IPv6 Address. */
     ipv6(): string
-    /** Return a random tld (Top Level Domain). */
+    /** Returns a random tld (Top Level Domain). */
     tld(): string
-    /** Return a random url. */
+    /** Returns a random url. */
     url(): string
-    /** Generate a random date. */
+    /** Generates a random date. */
     date(): Date
-    /** Return a random hex hash. */
+    /** Returns a random hex hash. */
     hash(options?: {length: number}): string
-    /** Return a random UUID. */
+    /** Returns a random UUID. */
     uuid(): string
+    /** Returns a randomly picked argument. */
+    random<T>(v1: T, v2: T, ...v: T[]): T
   }
 
   /** Assertion functions. */
