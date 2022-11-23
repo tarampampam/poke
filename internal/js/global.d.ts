@@ -89,6 +89,12 @@ declare global {
     character(options?: {pool: string}): string
     /** Return a random floating point number */
     floating(): number
+    /** Return a random integer (-9007199254740991 to 9007199254740991 by default) */
+    integer(options?: {min?: number, max?: number}): number
+    /** Return a random letter (one of "abcdefghijklmnopqrstuvwxyz") */
+    letter(): string
+    /** Return a random string */
+    string(options?: {length?: number, pool?: string}): string
   }
 
   /** Assertion functions. */

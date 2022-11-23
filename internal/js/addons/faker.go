@@ -2,6 +2,7 @@ package addons
 
 import (
 	"math/rand"
+	"strings"
 	"time"
 
 	js "github.com/dop251/goja"
@@ -14,7 +15,9 @@ type Faker struct {
 }
 
 const (
-	characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	lettersLower = "abcdefghijklmnopqrstuvwxyz"
+	lettersUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	characters   = lettersLower + lettersUpper + "0123456789"
 )
 
 func NewFaker(runtime *js.Runtime) *Faker {
@@ -59,7 +62,7 @@ func (f Faker) Falsy() js.Value {
 
 // Character returns a random character.
 func (f Faker) Character(args ...js.Value) string {
-	if len(args) == 1 {
+	if len(args) > 0 {
 		if poolOption := args[0].ToObject(f.runtime).Get("pool"); poolOption != nil {
 			var pool = []rune(poolOption.String())
 
@@ -71,8 +74,68 @@ func (f Faker) Character(args ...js.Value) string {
 }
 
 // Floating returns a random floating point number.
-func (f Faker) Floating() float32 {
-	return 0
+func (f Faker) Floating() (float float32) {
+	f.try(func() error {
+		return faker.FakeData(&float)
+	})
+
+	return
+}
+
+// Integer returns a random integer number.
+func (f Faker) Integer(args ...js.Value) int {
+	var min, max = -9007199254740991, 9007199254740991
+
+	if len(args) > 0 {
+		var options = args[0].ToObject(f.runtime)
+
+		if optMin := options.Get("min"); optMin != nil {
+			min = int(optMin.ToInteger())
+		}
+
+		if optMax := options.Get("max"); optMax != nil {
+			max = int(optMax.ToInteger())
+		}
+	}
+
+	return f.rnd.Intn(max-min) + min
+}
+
+// Letter returns a random letter.
+func (f Faker) Letter() string {
+	return string(lettersLower[f.rnd.Intn(len(lettersLower))])
+}
+
+// String returns a random string.
+func (f Faker) String(args ...js.Value) string {
+	var (
+		length = 11
+		pool   = []rune(characters)
+	)
+
+	if len(args) > 0 {
+		var options = args[0].ToObject(f.runtime)
+
+		if optLength := options.Get("length"); optLength != nil {
+			if l := int(optLength.ToInteger()); l > 0 {
+				length = l
+			}
+		}
+
+		if optPool := options.Get("pool"); optPool != nil {
+			pool = []rune(optPool.String())
+		}
+	}
+
+	var b strings.Builder
+
+	b.Grow(len(pool))
+
+	for i := 0; i < length; i++ {
+		b.WriteRune(pool[f.rnd.Intn(len(pool))])
+	}
+
+	return b.String()
 }
 
 func (f Faker) Register(runtime *js.Runtime) error {
