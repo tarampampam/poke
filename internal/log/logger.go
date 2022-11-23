@@ -30,7 +30,9 @@ type (
 
 		// Fatal logs a message at ErrorLevel.
 		Fatal(msg string, v ...Extra)
+	}
 
+	Leveler interface {
 		// SetLevel sets the log level.
 		SetLevel(lvl Level)
 
@@ -81,7 +83,8 @@ type Log struct {
 	stdErr io.Writer
 }
 
-var _ Logger = (*Log)(nil) // verify that the Log implements the Logger interface
+var _ Logger = (*Log)(nil)  // verify that the Log implements the Logger interface
+var _ Leveler = (*Log)(nil) // verify that the Log implements the Leveler interface
 
 const (
 	debugPrefix   = " debug "
@@ -118,7 +121,7 @@ func (l *Log) check(lvl Level) bool {
 	return lvl >= l.lvl
 }
 
-func (l *Log) write(w io.Writer, c colors, prefix, sep, msg string, extra ...Extra) {
+func (l *Log) write(w io.Writer, c colors, prefix, sep, msg string, extra ...Extra) { //nolint:gocognit
 	const bytesPerColor = 6 * 2
 
 	var (

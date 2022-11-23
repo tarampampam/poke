@@ -34,7 +34,7 @@ func NewProcess(ctx context.Context, runtime *js.Runtime) *Process {
 }
 
 // Delay is a helper function for delaying script execution for a given duration.
-func (p Process) Delay(args ...js.Value) {
+func (p *Process) Delay(args ...js.Value) {
 	if len(args) == 0 || p.ctx.Err() != nil {
 		return
 	}
@@ -46,15 +46,13 @@ func (p Process) Delay(args ...js.Value) {
 
 		select {
 		case <-p.ctx.Done():
-			return
-
-		case <-t.C: // do nothing
+		case <-t.C:
 		}
 	}
 }
 
 // Interrupt is a helper function for interrupting script execution.
-func (p Process) Interrupt(args ...js.Value) {
+func (p *Process) Interrupt(args ...js.Value) {
 	var reason = "interrupted by the script"
 
 	if len(args) == 1 {
@@ -64,7 +62,7 @@ func (p Process) Interrupt(args ...js.Value) {
 	p.runtime.Interrupt(reason)
 }
 
-func (p Process) Register(runtime *js.Runtime) error {
+func (p *Process) Register(runtime *js.Runtime) error {
 	return runtime.GlobalObject().DefineDataProperty(
 		"process",
 		runtime.ToValue(p),

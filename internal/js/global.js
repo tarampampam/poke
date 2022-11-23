@@ -142,6 +142,69 @@ const assert = new class {
       process.interrupt(message)
     }
   }
+
+  /**
+   * @param {*} object
+   * @param {string?} message
+   * @param {boolean?} interrupt
+   */
+  empty(object, message, interrupt) {
+    if (!object) {
+      return
+    }
+
+    switch (typeof object) {
+      case 'undefined':
+        return
+
+      case 'string' && object === "":
+        return
+
+      case 'boolean' && object === false:
+        return
+
+      case 'number' && object === 0:
+        return
+
+      case 'bigint' && object === 0:
+        return
+
+      case 'object' && object === null:
+        return
+
+      case 'object': {
+        if (object !== null) {
+          switch (true) {
+            case Array.isArray(object) && object.length === 0: // empty array
+              return
+
+            case Object.keys(object).length === 0: // empty collection
+              return
+
+            case object instanceof Date && Number.isNaN(object.getTime()): // is invalid date
+              return
+
+            case object instanceof Set && object.size === 0: // empty set
+              return
+
+            case object instanceof Map && object.size === 0: // empty map
+              return
+          }
+        }
+      }
+    }
+
+    if (typeof message !== 'string' || message === "") {
+      message = String(object) + ' is not empty'
+    }
+
+    console.error(message, object)
+    events.push({level: 'error', message: message})
+
+    if (interrupt === true) {
+      process.interrupt(message)
+    }
+  }
 }
 
 const require = new class {
@@ -168,6 +231,14 @@ const require = new class {
    */
   equals(actual, expected, message) {
     assert.equals(actual, expected, message, true)
+  }
+
+  /**
+   * @param {*} object
+   * @param {string?} message
+   */
+  empty(object, message) {
+    assert.empty(object, message, true)
   }
 }
 

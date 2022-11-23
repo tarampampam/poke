@@ -33,12 +33,12 @@ func NewFetch(ctx context.Context, client httpClient) *Fetch {
 	return &Fetch{ctx: ctx, client: client}
 }
 
-func (f Fetch) Register(runtime *js.Runtime) error {
+func (f *Fetch) Register(runtime *js.Runtime) error {
 	return runtime.Set("fetchSync", f.fetch(runtime))
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-func (f Fetch) fetch(runtime *js.Runtime) func(call js.FunctionCall) js.Value { //nolint:funlen,gocognit
+func (f *Fetch) fetch(runtime *js.Runtime) func(call js.FunctionCall) js.Value { //nolint:funlen,gocognit
 	return func(call js.FunctionCall) js.Value {
 		if len(call.Arguments) == 0 {
 			panic(runtime.ToValue("Wrong arguments count for the fetch function call"))

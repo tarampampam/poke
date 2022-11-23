@@ -20,9 +20,9 @@ declare global {
    */
   const io: {
     /** Send something to the standard output. */
-    stdOut(...v: any[]): void
+    stdOut(...v: unknown[]): void
     /** Send something to the errors output. */
-    stdErr(...v: any[]): void
+    stdErr(...v: unknown[]): void
   }
 
   /**
@@ -38,7 +38,7 @@ declare global {
       /** Event message. */
       message: string
       /** An error (optional). */
-      error?: Error
+      error?: string | Error
     }[]): void
   }
 
@@ -129,6 +129,8 @@ declare global {
     false(mustBeTrue: unknown, message?: string, interrupt?: boolean): void
     /** Asserts that the values are the same. */
     equals(actual: unknown, expected: unknown, message?: string, interrupt?: boolean): void
+    /** Asserts that the specified object is empty. */
+    empty(object: unknown, message?: string, interrupt?: boolean): void
   }
 
   /** Assertion functions that interrupt the script on error. */
@@ -139,6 +141,8 @@ declare global {
     false(mustBeTrue: unknown, message?: string): void
     /** Asserts that the values are the same. */
     equals(actual: unknown, expected: unknown, message?: string): void
+    /** Asserts that the specified object is empty. */
+    empty(object: unknown, message?: string): void
   }
 
   /**

@@ -22,33 +22,31 @@ const (
 )
 
 var (
-	tld = [...]string{"com", "org", "edu", "gov", "uk", "net", "io"}
+	tld = [...]string{"com", "org", "edu", "gov", "uk", "net", "io"} //nolint:gochecknoglobals
 )
 
 func NewFaker(runtime *js.Runtime) *Faker {
 	return &Faker{
 		runtime: runtime,
-		rnd:     rand.New(rand.NewSource(time.Now().UnixNano())),
+		rnd:     rand.New(rand.NewSource(time.Now().UnixNano())), //nolint:gosec
 	}
 }
 
 // Bool returns a random boolean value.
-func (f Faker) Bool() bool {
-	return f.rnd.Intn(2) == 1
-}
+func (f *Faker) Bool() bool { return f.rnd.Intn(2) == 1 } //nolint:gomnd
 
 // Falsy returns a random falsy value.
-func (f Faker) Falsy() js.Value {
-	switch f.rnd.Intn(6) {
+func (f *Faker) Falsy() js.Value {
+	switch f.rnd.Intn(6) { //nolint:gomnd
 	case 0:
 		return f.runtime.ToValue(false)
 	case 1:
-		return f.runtime.ToValue(0)
-	case 2:
+		return f.runtime.ToValue(int64(0))
+	case 2: //nolint:gomnd
 		return f.runtime.ToValue("")
-	case 3:
+	case 3: //nolint:gomnd
 		return js.Null()
-	case 4:
+	case 4: //nolint:gomnd
 		return js.Undefined()
 	default:
 		return js.NaN()
@@ -56,7 +54,7 @@ func (f Faker) Falsy() js.Value {
 }
 
 // Character returns a random character.
-func (f Faker) Character(args ...js.Value) string {
+func (f *Faker) Character(args ...js.Value) string {
 	if len(args) > 0 {
 		if poolOption := args[0].ToObject(f.runtime).Get("pool"); poolOption != nil {
 			var pool = []rune(poolOption.String())
@@ -69,14 +67,14 @@ func (f Faker) Character(args ...js.Value) string {
 }
 
 // Floating returns a random floating point number.
-func (f Faker) Floating() float32 {
+func (f *Faker) Floating() float32 {
 	const min, max float32 = -32768, 32768
 
 	return min + f.rnd.Float32()*(max-min)
 }
 
 // Integer returns a random integer number.
-func (f Faker) Integer(args ...js.Value) int {
+func (f *Faker) Integer(args ...js.Value) int {
 	var min, max = -9007199254740991, 9007199254740991
 
 	if len(args) > 0 {
@@ -95,12 +93,10 @@ func (f Faker) Integer(args ...js.Value) int {
 }
 
 // Letter returns a random letter.
-func (f Faker) Letter() string {
-	return string(lettersLower[f.rnd.Intn(len(lettersLower))])
-}
+func (f *Faker) Letter() string { return string(lettersLower[f.rnd.Intn(len(lettersLower))]) }
 
 // String returns a random string.
-func (f Faker) String(args ...js.Value) string {
+func (f *Faker) String(args ...js.Value) string {
 	var (
 		length = 11
 		pool   = []rune(characters)
@@ -132,36 +128,36 @@ func (f Faker) String(args ...js.Value) string {
 }
 
 // Paragraph returns a random paragraph.
-func (f Faker) Paragraph() string { return faker.Paragraph() }
+func (f *Faker) Paragraph() string { return faker.Paragraph() }
 
 // Word returns a random word.
-func (f Faker) Word() string { return faker.Word() }
+func (f *Faker) Word() string { return faker.Word() }
 
 // Domain returns a random domain.
-func (f Faker) Domain() string { return faker.DomainName() }
+func (f *Faker) Domain() string { return faker.DomainName() }
 
 // Email returns a random email.
-func (f Faker) Email() string { return faker.Email() }
+func (f *Faker) Email() string { return faker.Email() }
 
 // Ip returns a random IPv4 address.
-func (f Faker) Ip() string { return faker.IPv4() }
+func (f *Faker) Ip() string { return faker.IPv4() }
 
 // Ipv6 returns a random IPv6 address.
-func (f Faker) Ipv6() string { return faker.IPv6() }
+func (f *Faker) Ipv6() string { return faker.IPv6() }
 
 // Tld returns a random top-level domain.
-func (f Faker) Tld() string { return tld[f.rnd.Intn(len(tld))] }
+func (f *Faker) Tld() string { return tld[f.rnd.Intn(len(tld))] }
 
 // Url returns a random URL.
-func (f Faker) Url() string { return faker.URL() }
+func (f *Faker) Url() string { return faker.URL() }
 
 // Date returns a random date.
-func (f Faker) Date() js.Value {
+func (f *Faker) Date() js.Value {
 	var min, max = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC).UnixNano(), time.Now().UnixNano()
 
 	date, err := f.runtime.New(
 		f.runtime.Get("Date").ToObject(f.runtime),
-		f.runtime.ToValue((f.rnd.Int63n(max-min)+min)/1e6), // https://bit.ly/3i8c9o9
+		f.runtime.ToValue((f.rnd.Int63n(max-min)+min)/1e6), //nolint:gomnd // https://bit.ly/3i8c9o9
 	)
 	if err != nil {
 		panic(f.runtime.ToValue(err.Error()))
@@ -171,7 +167,7 @@ func (f Faker) Date() js.Value {
 }
 
 // Hash returns a random hash.
-func (f Faker) Hash(args ...js.Value) string {
+func (f *Faker) Hash(args ...js.Value) string {
 	var (
 		length = 40
 		pool   = []rune(hashLetters)
@@ -197,10 +193,10 @@ func (f Faker) Hash(args ...js.Value) string {
 }
 
 // Uuid returns a random UUID.
-func (f Faker) Uuid() string { return faker.UUIDHyphenated() }
+func (f *Faker) Uuid() string { return faker.UUIDHyphenated() }
 
 // Random returns a randomly picked argument.
-func (f Faker) Random(args ...js.Value) js.Value {
+func (f *Faker) Random(args ...js.Value) js.Value {
 	if len(args) > 0 {
 		return args[f.rnd.Intn(len(args))]
 	}
@@ -208,7 +204,7 @@ func (f Faker) Random(args ...js.Value) js.Value {
 	return js.Undefined()
 }
 
-func (f Faker) Register(runtime *js.Runtime) error {
+func (f *Faker) Register(runtime *js.Runtime) error {
 	return runtime.GlobalObject().DefineDataProperty(
 		"faker",
 		runtime.ToValue(f),

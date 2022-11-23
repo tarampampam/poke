@@ -3,6 +3,7 @@ package js
 import (
 	"context"
 	_ "embed"
+	"os"
 	"sync"
 
 	js "github.com/dop251/goja"
@@ -63,7 +64,7 @@ func NewRuntime(ctx context.Context, log log.Logger, options ...RuntimeOption) (
 	}
 
 	for _, addon := range []addonRegisterer{
-		addons.NewIO(r.runtime, r.printer),
+		addons.NewIO(r.runtime, os.Stdout, os.Stderr, r.printer),
 		addons.NewConsole(r.runtime, log),
 		addons.NewProcess(ctx, r.runtime),
 		addons.NewFetch(ctx, nil),

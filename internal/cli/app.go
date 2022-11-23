@@ -16,7 +16,10 @@ import (
 )
 
 // NewApp creates new console application.
-func NewApp(l log.Logger) *cli.App {
+func NewApp(l interface {
+	log.Logger
+	log.Leveler
+}) *cli.App {
 	const (
 		logLevelFlagName = "log-level"
 		defaultLogLevel  = log.InfoLevel
