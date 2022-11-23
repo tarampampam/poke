@@ -76,6 +76,18 @@ declare global {
   }
 
   /**
+   * Encoding helper functions.
+   *
+   * @external go Implemented on the Golang side
+   */
+  const encoding: {
+    /** Encode a string to base64 (`std` mode us used by default). */
+    base64encode(s: string, options?: {mode: 'std' | 'url'}): string
+    /** Decode a base64 string (`std` mode us used by default). `undefined` will be returned on malformed input. */
+    base64decode(encoded: string, options?: {mode: 'std' | 'url'}): string | undefined
+  }
+
+  /**
    * Helper functions to generate a faked data.
    *
    * @external go Implemented on the Golang side

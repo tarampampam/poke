@@ -1,8 +1,8 @@
 #!/usr/bin/env poke run
 
 console.log(JSON.stringify({
-  bool: faker.bool(), // true, false
-  falsy: faker.falsy(), // false, null, undefined...
+  bool: faker.bool(), // true | false
+  falsy: faker.falsy(), // false | null | undefined...
   character: faker.character(), // L
   characterPool: faker.character({pool: 'abc'}), // b
   floating: faker.floating(), // -1913.91796875
