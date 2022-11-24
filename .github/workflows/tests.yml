@@ -95,26 +95,35 @@ jobs:
 
       - if: matrix.os == 'linux' && matrix.arch == 'amd64'
         run: |
-          mkdir -p ./.debpkg/usr/bin
-          cp /tmp/poke ./.debpkg/usr/bin/poke
+          mkdir -p ./.debpkg/usr/local/bin ./.debpkg/DEBIAN
+          cp /tmp/poke ./.debpkg/usr/local/bin/poke
+          echo -e "Package: poke\nVersion: ${{ steps.slug.outputs.commit-hash-short }}" > ./.debpkg/DEBIAN/control
+          echo -e "Architecture: ${{ matrix.arch }}\nMaintainer: ${{ github.actor }}" >> ./.debpkg/DEBIAN/control
+          echo -e "Description: A simple and powerful tool for E2E-testing" >> ./.debpkg/DEBIAN/control
+          dpkg-deb --build --root-owner-group ./.debpkg
 
-      - if: matrix.os == 'linux' && matrix.arch == 'amd64'
-        uses: jiro4989/build-deb-action@v2
-        id: deb
-        with:
-          package: poke
-          package_root: .debpkg
-          maintainer: ${{ github.actor }}
-          version: ${{ steps.slug.outputs.commit-hash-short }}
-          arch: ${{ matrix.arch }}
+          ls -la
 
-      - if: matrix.os == 'linux' && matrix.arch == 'amd64'
-        uses: actions/upload-artifact@v3
-        with:
-          name: poke-${{ matrix.os }}-${{ matrix.arch }}.deb
-          path: ${{ steps.deb.outputs.file_name }}
-          if-no-files-found: error
-          retention-days: 3
+#          sudo dpkg -i .deb
+#          sudo dpkg -r poke
+
+#      - if: matrix.os == 'linux' && matrix.arch == 'amd64'
+#        uses: jiro4989/build-deb-action@v2
+#        id: deb
+#        with:
+#          package: poke
+#          package_root: .debpkg
+#          maintainer: ${{ github.actor }}
+#          version: ${{ steps.slug.outputs.commit-hash-short }}
+#          arch: ${{ matrix.arch }}
+#
+#      - if: matrix.os == 'linux' && matrix.arch == 'amd64'
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: poke_${{ steps.slug.outputs.commit-hash-short }}-1_${{ matrix.arch }}.deb
+#          path: ${{ steps.deb.outputs.file_name }}
+#          if-no-files-found: error
+#          retention-days: 3
 
   build-docker-image:
     name: 🏗️ Build the docker image
