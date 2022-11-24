@@ -81,6 +81,10 @@ Additionally, you can use the docker image:
 
 For the more details take a look the [language reference](docs/language.md) and [examples](examples).
 
+## 🗒 TODO
+
+- [ ] `require(<js-or-json-file>)`
+
 ## Support
 
 [![Issues][badge_issues]][link_issues]
