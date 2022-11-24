@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - uses: gacts/setup-go-with-cache@v1
-        with: {go-version: 1.19}
+        with: {go-version-file: go.mod}
 
       - run: go generate ./...
 
@@ -44,7 +44,7 @@ jobs:
         with: {fetch-depth: 2} # Fixes codecov error 'Issue detecting commit SHA'
 
       - uses: gacts/setup-go-with-cache@v1
-        with: {go-version: 1.19}
+        with: {go-version-file: go.mod}
 
       - run:  go generate ./...
 
@@ -69,7 +69,9 @@ jobs:
       - uses: actions/checkout@v3
 
       - uses: gacts/setup-go-with-cache@v1
-        with: {go-version: 1.19}
+        with: {go-version-file: go.mod}
+
+      - run: go generate ./...
 
       - {uses: gacts/github-slug@v1, id: slug}
 
