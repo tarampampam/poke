@@ -23,30 +23,6 @@ node.js, jest, Axios, etc. Sounds like something impossible? 😉
 - Built-in **faker** (fake data generator, like strings, numbers, IP addresses, UUIDs, and so on), **hashing** and **encoding** functions
 - Easy to use by developers and QA engineers
 
-## 🧩 Installation (WIP)
-
-Download the latest binary file for your arch (to run on macOS use the `linux/arm64` platform) from
-the [releases page][link_releases]. For example, let's install it on **amd64** arch (e.g.: Debian, Ubuntu, etc):
-
-```shell
-$ curl -SsL -o ./poke https://github.com/tarampampam/poke/releases/latest/download/poke-linux-amd64
-$ chmod +x ./poke
-
-# optionally, install the binary file globally:
-$ sudo install -g root -o root -t /usr/local/bin -v ./poke
-$ rm ./poke
-$ poke --help
-```
-Additionally, you can use the docker image:
-
-| Registry                               | Image                      |
-|----------------------------------------|----------------------------|
-| [GitHub Container Registry][link_ghcr] | `ghcr.io/tarampampam/poke` |
-| [Docker Hub][link_docker_hub]          | `tarampampam/poke`         |
-
-> Using the `latest` tag for the docker image is highly discouraged because of possible backward-incompatible changes
-> during **major** upgrades. Please, use tags in `X.Y.Z` format
-
 ## ⚙ Usage
 
 Let's start from the simples example. Create a file `./test.js` with the following content:
@@ -76,6 +52,30 @@ Wildcards (`?*`) and double stars (`**`) are allowed. For example, you can run a
 ```shell
 ./poke run ./tests/**/*.js
 ```
+
+## 🧩 Installation (WIP)
+
+Download the latest binary file for your arch (to run on macOS use the `linux/arm64` platform) from
+the [releases page][link_releases]. For example, let's install it on **amd64** arch (e.g.: Debian, Ubuntu, etc):
+
+```shell
+$ curl -SsL -o ./poke https://github.com/tarampampam/poke/releases/latest/download/poke-linux-amd64
+$ chmod +x ./poke
+
+# optionally, install the binary file globally:
+$ sudo install -g root -o root -t /usr/local/bin -v ./poke
+$ rm ./poke
+$ poke --help
+```
+Additionally, you can use the docker image:
+
+| Registry                               | Image                      |
+|----------------------------------------|----------------------------|
+| [GitHub Container Registry][link_ghcr] | `ghcr.io/tarampampam/poke` |
+| [Docker Hub][link_docker_hub]          | `tarampampam/poke`         |
+
+> Using the `latest` tag for the docker image is highly discouraged because of possible backward-incompatible changes
+> during **major** upgrades. Please, use tags in `X.Y.Z` format
 
 ## 🔌 Language reference ([d.ts](internal/js/global.d.ts))
 
