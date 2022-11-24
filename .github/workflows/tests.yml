@@ -93,6 +93,20 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
+      - if: matrix.os == 'linux' && matrix.arch == 'amd64'
+        run: |
+          mkdir -p ./.debpkg/usr/bin
+          mv /tmp/poke ./.debpkg/usr/bin/poke
+
+      - if: matrix.os == 'linux' && matrix.arch == 'amd64'
+        uses: jiro4989/build-deb-action@v2
+        with:
+          package: poke
+          package_root: .debpkg
+          maintainer: ${{ github.actor }}
+          version: ${{ steps.slug.outputs.commit-hash-short }}
+          arch: ${{ matrix.arch }}
+
   build-docker-image:
     name: 🏗️ Build the docker image
     runs-on: ubuntu-latest
