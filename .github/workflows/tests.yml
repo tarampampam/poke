@@ -96,16 +96,25 @@ jobs:
       - if: matrix.os == 'linux' && matrix.arch == 'amd64'
         run: |
           mkdir -p ./.debpkg/usr/bin
-          mv /tmp/poke ./.debpkg/usr/bin/poke
+          cp /tmp/poke ./.debpkg/usr/bin/poke
 
       - if: matrix.os == 'linux' && matrix.arch == 'amd64'
         uses: jiro4989/build-deb-action@v2
+        id: deb
         with:
           package: poke
           package_root: .debpkg
           maintainer: ${{ github.actor }}
           version: ${{ steps.slug.outputs.commit-hash-short }}
           arch: ${{ matrix.arch }}
+
+      - if: matrix.os == 'linux' && matrix.arch == 'amd64'
+        uses: actions/upload-artifact@v3
+        with:
+          name: poke-${{ matrix.os }}-${{ matrix.arch }}.deb
+          path: ${{ steps.deb.outputs.file_name }}
+          if-no-files-found: error
+          retention-days: 3
 
   build-docker-image:
     name: 🏗️ Build the docker image
