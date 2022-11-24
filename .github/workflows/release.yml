@@ -27,7 +27,7 @@ jobs:
         id: values
         run: |
           echo "binary-name=poke-${{ matrix.os }}-${{ matrix.arch }}`[ ${{ matrix.os }} = 'windows' ] && echo '.exe'`" >> $GITHUB_OUTPUT
-          echo "deb-name=poke_${{ steps.slug.outputs.commit-hash-short }}-1_${{ matrix.arch }}" >> $GITHUB_OUTPUT
+          echo "deb-name=poke_${{ steps.slug.outputs.version }}-1_${{ matrix.arch }}" >> $GITHUB_OUTPUT
 
       - env:
           GOOS: ${{ matrix.os }}
