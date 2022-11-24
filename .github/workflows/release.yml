@@ -62,7 +62,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ steps.values.outputs.deb-name }}.deb
-          asset_name: ${{ steps.values.outputs.deb-name }}.deb
+          asset_name: poke-${{ matrix.arch }}.deb
           tag: ${{ github.ref }}
 
   build-docker-image:
