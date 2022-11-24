@@ -20,12 +20,13 @@ node.js, jest, Axios, etc. Sounds like something impossible? 😉
 - Tests are parallelized by running them in their own thread to maximize performance
 - Ready to work out of the box, config free
 - Cross-platform (like any go-based app)
+- The jest-like syntax for grouping tests cases and asserts
 - Built-in **faker** (fake data generator, like strings, numbers, IP addresses, UUIDs, and so on), **hashing** and **encoding** functions
 - Easy to use by developers and QA engineers
 
 ## ⚙ Usage
 
-Let's start from the simples example. Create a file `./test.js` with the following content:
+Let's start from the simplest example. Create a file `./test.js` with the following content:
 
 ```js
 #!/usr/bin/env poke run
@@ -47,7 +48,7 @@ And run it:
 
 ![shell](https://user-images.githubusercontent.com/7326800/203788784-80b791f9-03c3-4c8a-a9fc-c8b267f16d65.gif)
 
-Wildcards (`?*`) and double stars (`**`) are allowed. For example, you can run all tests from the `./tests` directory:
+Wildcards (`?*`) and double stars (`**`) are allowed. For example, you can run all tests from the `./tests` (including all nested) directory:
 
 ```shell
 ./poke run ./tests/**/*.js
@@ -80,6 +81,11 @@ Additionally, you can use the docker image:
 ## 🔌 Language reference ([d.ts](internal/js/global.d.ts))
 
 For the more details take a look the [language reference](docs/language.md) and [examples](examples).
+
+## 🗒 TODO
+
+- [ ] `require(<js-or-json-file>)`
+- [ ] `Language reference generation`
 
 ## Support
 

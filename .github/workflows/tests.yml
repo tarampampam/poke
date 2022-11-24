@@ -71,9 +71,9 @@ jobs:
       - uses: gacts/setup-go-with-cache@v1
         with: {go-version-file: go.mod}
 
-      - run: go generate ./...
-
       - {uses: gacts/github-slug@v1, id: slug}
+
+      - run: go generate ./...
 
       - env:
           GOOS: ${{ matrix.os }}
