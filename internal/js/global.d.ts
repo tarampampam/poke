@@ -144,7 +144,7 @@ declare global {
     character(options?: {pool: string}): string
     /** Returns a random floating point number. */
     floating(): number
-    /** Returns a random integer (-9007199254740991 to 9007199254740991 by default). */
+    /** Returns a random integer (-2147483648 to 2147483648 by default). */
     integer(options?: {min?: number, max?: number}): number
     /** Returns a random letter (one of "abcdefghijklmnopqrstuvwxyz"). */
     letter(): string

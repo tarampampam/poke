@@ -75,7 +75,7 @@ func (f *Faker) Floating() float32 {
 
 // Integer returns a random integer number.
 func (f *Faker) Integer(args ...js.Value) int {
-	var min, max = -9007199254740991, 9007199254740991
+	var min, max = -2147483648, 2147483648
 
 	if len(args) > 0 {
 		var options = args[0].ToObject(f.runtime)
