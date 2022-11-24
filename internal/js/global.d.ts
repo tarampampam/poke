@@ -190,6 +190,10 @@ declare global {
     empty(object: unknown, message?: string, interrupt?: boolean): void
     /** Asserts that the specified object is not empty. */
     notEmpty(object: unknown, message?: string, interrupt?: boolean): void
+    /** Asserts that the specified string or array contains the required value. */
+    contains(what: unknown, where: string | unknown[], message?: string, interrupt?: boolean): void
+    /** Asserts that the specified string or array does not contain the required value. */
+    notContains(what: unknown, where: string | unknown[], message?: string, interrupt?: boolean): void
   }
 
   /** Assertion functions that interrupt the script on error. */
@@ -206,6 +210,10 @@ declare global {
     empty(object: unknown, message?: string): void
     /** Asserts that the specified object is not empty. */
     notEmpty(object: unknown, message?: string): void
+    /** Asserts that the specified string or array contains required value. */
+    contains(what: unknown, where: string | unknown[], message?: string): void
+    /** Asserts that the specified string or array does not contain the required value. */
+    notContains(what: unknown, where: string | unknown[], message?: string): void
   }
 
   /**

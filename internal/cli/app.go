@@ -22,6 +22,7 @@ func NewApp(l interface {
 }) *cli.App {
 	const (
 		logLevelFlagName = "log-level"
+		verboseFlagName  = "verbose"
 		defaultLogLevel  = log.InfoLevel
 	)
 
@@ -43,6 +44,10 @@ func NewApp(l interface {
 				l.SetLevel(logLevel)
 			}
 
+			if c.Bool(verboseFlagName) {
+				l.SetLevel(log.DebugLevel)
+			}
+
 			return nil
 		},
 		Version: version.Version(),
@@ -56,6 +61,10 @@ func NewApp(l interface {
 				Value:   defaultLogLevel.String(),
 				Usage:   "logging level (" + strings.Join(log.AllLevelStrings(), "|") + ")",
 				EnvVars: []string{env.LogLevel.String()},
+			},
+			&cli.BoolFlag{
+				Name:  verboseFlagName,
+				Usage: "verbose output (set the logging level to debug)",
 			},
 		},
 	}

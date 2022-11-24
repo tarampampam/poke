@@ -64,6 +64,46 @@ const tests = new class {
   }
 
   /**
+   * @param {*} message
+   * @return {boolean}
+   */
+  notEmptyString(message) {
+    return typeof message === 'string' && message.trim() !== ""
+  }
+
+  /**
+   * @param {*} a
+   * @param {*} b
+   * @returns {boolean}
+   */
+  isEquals(a, b) {
+    const deepEqual = (x, y) => { // https://stackoverflow.com/a/32922084/2252921
+      const ok = Object.keys, tx = typeof x, ty = typeof y
+
+      return x && y && tx === 'object' && tx === ty ? (
+        ok(x).length === ok(y).length &&
+        ok(x).every(key => deepEqual(x[key], y[key])) // recursive call
+      ) : (x === y)
+    }
+
+    if (typeof a === typeof b) {
+      if (typeof a === 'object' && a !== null) {
+        switch (true) {
+          case Array.isArray(a) && Array.isArray(b):
+            return a.length === b.length && a.every((val, index) => val === b[index])
+
+          default:
+            return deepEqual(a, b)
+        }
+      }
+
+      return a === b
+    }
+
+    return false
+  }
+
+  /**
    * @param {*} object
    * @returns {boolean}
    */
@@ -117,11 +157,26 @@ const tests = new class {
   }
 
   /**
-   * @param {*} message
-   * @return {boolean}
+   * @param {*} what
+   * @param {string|array} where
+   * @returns {boolean}
    */
-  notEmptyString(message) {
-    return typeof message === 'string' && message.trim() !== ""
+  isContains(what, where) {
+    switch (typeof where) {
+      case 'string':
+        return where.includes(what)
+
+      case 'object':
+        if (where !== null && Array.isArray(where)) {
+          for (const value of where) {
+            if (value === what) {
+              return true
+            }
+          }
+        }
+    }
+
+    return false
   }
 
   /**
@@ -203,7 +258,7 @@ const assert = new class {
    * @param {boolean?} interrupt
    */
   equals(actual, expected, message, interrupt) {
-    if (actual === expected) {
+    if (tests.isEquals(actual, expected)) {
       return
     }
 
@@ -221,7 +276,7 @@ const assert = new class {
    * @param {boolean?} interrupt
    */
   notEquals(actual, expected, message, interrupt) {
-    if (actual !== expected) {
+    if (!tests.isEquals(actual, expected)) {
       return
     }
 
@@ -264,6 +319,42 @@ const assert = new class {
       : String(object) + ' is empty, but should not be'
 
     tests.triggerError(message, interrupt, object)
+  }
+
+  /**
+   * @param {*} what
+   * @param {string|*[]} where
+   * @param {string?} message
+   * @param {boolean?} interrupt
+   */
+  contains(what, where, message, interrupt) {
+    if (tests.isContains(what, where)) {
+      return
+    }
+
+    message = tests.notEmptyString(message)
+      ? message
+      : String(where) + ' does not contain ' + String(what)
+
+    tests.triggerError(message, interrupt, what, where)
+  }
+
+  /**
+   * @param {*} what
+   * @param {string|*[]} where
+   * @param {string?} message
+   * @param {boolean?} interrupt
+   */
+  notContains(what, where, message, interrupt) {
+    if (!tests.isContains(what, where)) {
+      return
+    }
+
+    message = tests.notEmptyString(message)
+      ? message
+      : String(where) + ' contains ' + String(what) + ', but should not'
+
+    tests.triggerError(message, interrupt, what, where)
   }
 }
 
@@ -316,6 +407,24 @@ const mustBe = new class {
    */
   notEmpty(object, message) {
     assert.notEmpty(object, message, true)
+  }
+
+  /**
+   * @param {*} what
+   * @param {string|*[]} where
+   * @param {string?} message
+   */
+  contains(what, where, message) {
+    assert.contains(what, where, message, true)
+  }
+
+  /**
+   * @param {*} what
+   * @param {string|*[]} where
+   * @param {string?} message
+   */
+  notContains(what, where, message) {
+    assert.notContains(what, where, message, true)
   }
 }
 

@@ -20,35 +20,18 @@ describe('strings', () => {
     test('length', () => mustBe.true('foo'.length === 3))
     test('numbers', () => mustBe.equals(1, 1))
 
-    for (const value of [
-      [],
-      {},
-      false,
-      null,
-      undefined,
-      "",
-      0,
-      NaN,
-      new Map(),
-      new Set(),
-      new Date('invalid'),
-    ]) {
+    for (const value of [{}, [], ""]) {
       assert.empty(value)
     }
 
-    for (const value of [
-      [1],
-      {foo: 'bar'},
-      [undefined],
-      1,
-      "string",
-      true,
-      Symbol(),
-      () => {},
-      new Date(),
-      new Promise(() => {})
-    ]) {
-      assert.notEmpty(value)
+    for (const value of [{foo: 'bar'}, [1], "string"]) {
+      mustBe.notEmpty(value)
     }
+
+    assert.contains('foo', 'foobar')
+    assert.notContains('foo', 'barbaz')
+
+    assert.contains(true, [3, 2, 1, true])
+    assert.notContains(2, ['foo', 'bar'])
   })
 })
