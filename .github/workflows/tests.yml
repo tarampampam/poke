@@ -71,9 +71,9 @@ jobs:
       - uses: gacts/setup-go-with-cache@v1
         with: {go-version-file: go.mod}
 
-      - run: go generate ./...
-
       - {uses: gacts/github-slug@v1, id: slug}
+
+      - run: go generate ./...
 
       - env:
           GOOS: ${{ matrix.os }}
@@ -92,41 +92,6 @@ jobs:
           path: /tmp/poke
           if-no-files-found: error
           retention-days: 3
-
-      - name: Build a Debian package
-        if: matrix.os == 'linux' && matrix.arch == 'amd64'
-        env:
-          PKG_NAME: poke_${{ steps.slug.outputs.commit-hash-short }}-1_${{ matrix.arch }}
-        run: |
-          mkdir -p ${{ env.PKG_NAME }}/usr/local/bin ${{ env.PKG_NAME }}/DEBIAN
-          cp /tmp/poke ${{ env.PKG_NAME }}/usr/local/bin/poke
-          echo -e "Package: poke\nVersion: ${{ steps.slug.outputs.commit-hash-short }}" > ${{ env.PKG_NAME }}/DEBIAN/control
-          echo -e "Architecture: ${{ matrix.arch }}\nMaintainer: ${{ github.actor }}" >> ${{ env.PKG_NAME }}/DEBIAN/control
-          echo -e "Description: A simple and powerful tool for E2E-testing" >> ${{ env.PKG_NAME }}/DEBIAN/control
-          dpkg-deb --build --root-owner-group ${{ env.PKG_NAME }}
-
-          ls -la
-
-          sudo dpkg -i ${{ env.PKG_NAME }}.deb
-          sudo dpkg -r poke
-
-#      - if: matrix.os == 'linux' && matrix.arch == 'amd64'
-#        uses: jiro4989/build-deb-action@v2
-#        id: deb
-#        with:
-#          package: poke
-#          package_root: .debpkg
-#          maintainer: ${{ github.actor }}
-#          version: ${{ steps.slug.outputs.commit-hash-short }}
-#          arch: ${{ matrix.arch }}
-#
-#      - if: matrix.os == 'linux' && matrix.arch == 'amd64'
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: poke_${{ steps.slug.outputs.commit-hash-short }}-1_${{ matrix.arch }}.deb
-#          path: ${{ steps.deb.outputs.file_name }}
-#          if-no-files-found: error
-#          retention-days: 3
 
   build-docker-image:
     name: 🏗️ Build the docker image
