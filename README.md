@@ -85,6 +85,7 @@ For the more details take a look the [language reference](docs/language.md) and 
 ## 🗒 TODO
 
 - [ ] `require(<js-or-json-file>)`
+- [ ] `Language reference generation`
 
 ## Support
 
