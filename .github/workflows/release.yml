@@ -55,7 +55,6 @@ jobs:
           echo -e "Architecture: ${{ matrix.arch }}\nMaintainer: ${{ github.actor }}" >> ${{ env.PKG_NAME }}/DEBIAN/control
           echo -e "Description: A simple and powerful tool for E2E-testing" >> ${{ env.PKG_NAME }}/DEBIAN/control
           dpkg-deb --build --root-owner-group ${{ env.PKG_NAME }}
-          sudo dpkg -i ${{ env.PKG_NAME }}.deb # test package installation
 
       - name: Upload Debian package to the release
         if: matrix.os == 'linux' && matrix.arch == 'amd64'
