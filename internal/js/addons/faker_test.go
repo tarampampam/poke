@@ -44,7 +44,7 @@ func TestFaker_Methods(t *testing.T) { //nolint:gocyclo
 		var integer = addon.Integer()
 
 		assert.GreaterOrEqual(t, integer, -2147483648)
-		assert.LessOrEqual(t, integer, 2147483648)
+		assert.LessOrEqual(t, integer, 2147483647)
 
 		integer = addon.Integer(runtime.ToValue(map[string]any{"min": -100, "max": -90}))
 
