@@ -6,7 +6,7 @@ describe('test API', () => {
     const [user, password] = ['user1', 'password1']
 
     const response = get(`https://httpbin.org/basic-auth/${user}/${password}`, {
-      headers: {Authorization: 'Basic ' + encoding.base64encode('${user}:${password}')}, // basic auth
+      headers: {Authorization: 'Basic ' + encoding.base64encode(`${user}:${password}`)}, // basic auth
       body: JSON.stringify({string: faker.string()}), // generate random string
     })
 
