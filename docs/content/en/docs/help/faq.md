@@ -6,12 +6,21 @@ date: 2020-10-06T08:49:31+00:00
 lastmod: 2020-10-06T08:49:31+00:00
 draft: false
 images: []
+mermaid: true
 menu:
   docs:
     parent: "help"
 weight: 630
 toc: true
 ---
+
+{{< mermaid class="bg-light text-center" >}}
+graph TD
+A[Hard] -->|Text| B(Round)
+B --> C{Decision}
+C -->|One| D[Result 1]
+C -->|Two| E[Result 2]
+{{< /mermaid >}}
 
 ## Hyas?
 

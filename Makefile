@@ -41,7 +41,7 @@ shell: ## Start shell inside go environment
 
 .PHONY: docs
 docs: ## Start a webserver with documentation
-	docker-compose run $(DC_RUN_ARGS) hugo sh -c 'test -d ./node_modules || npm install --no-audit'
+	docker-compose run $(DC_RUN_ARGS) -e "NPM_CONFIG_UPDATE_NOTIFIER=false" hugo sh -c 'test -d ./node_modules || npm install --no-audit'
 	docker-compose run $(DC_RUN_ARGS) -p '1313:1313/tcp' hugo hugo server --watch --environment development --baseURL 'http://127.0.0.1:1313/'
 
 # Overall stuff

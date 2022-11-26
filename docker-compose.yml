@@ -38,6 +38,5 @@ services:
       - ./docs:/src:rw
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
-    environment: {NPM_CONFIG_UPDATE_NOTIFIER: false}
     working_dir: /src
     entrypoint: []
