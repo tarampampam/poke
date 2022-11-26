@@ -18,6 +18,7 @@
     "instant.page": "^5.1",
     "lazysizes": "^5.3",
     "mermaid": "^9.2.2",
-    "postcss-cli": "^10.0.0"
+    "postcss-cli": "^10.0.0",
+    "purgecss-whitelister": "^2.4.0"
   }
 }
