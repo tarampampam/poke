@@ -21,7 +21,7 @@ highlight:
   lineNumbersInTable: true
   noClasses: false
   style: dracula
-  tabWidth: 4
+  tabWidth: 2
 
 tableOfContents:
   endLevel: 3
