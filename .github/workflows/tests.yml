@@ -33,6 +33,7 @@ jobs:
         with: {hugo-version: 0.107.0, extended: true}
 
       - run: npm ci
+        working-directory: docs
 
       - name: Build
         working-directory: docs
