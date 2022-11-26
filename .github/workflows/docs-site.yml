@@ -1,0 +1,41 @@
+name: docs-site
+
+on:
+  push:
+    branches: [master, main, docs] # TODO remove "docs"
+    paths: ['docs/**', '.github/workflows/docs-site.yml']
+  workflow_dispatch: {}
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    name: 📕 Deploy the docs
+    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: ./docs}}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: peaceiris/actions-hugo@v2
+        with: {hugo-version: 0.107.0, extended: true}
+
+      - run: npm ci
+
+      - run: hugo --environment production --noChmod --noTimes --minify
+
+      - uses: actions/configure-pages@v2
+
+      - uses: actions/upload-pages-artifact@v1
+        with: {path: ./docs/public} # relative path from the repository root
+
+      - {uses: actions/deploy-pages@v1, id: deployment}

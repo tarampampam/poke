@@ -1,4 +1,4 @@
-name: documentation
+name: docs-docker-hub
 
 on:
   push:
