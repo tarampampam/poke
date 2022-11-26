@@ -7,3 +7,6 @@
 # Disable next extensions in project "used languages" list
 Dockerfile linguist-detectable=false
 Makefile linguist-detectable=false
+
+# Disable the following directories for the linguist
+docs/* linguist-vendored

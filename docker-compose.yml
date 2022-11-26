@@ -31,3 +31,13 @@ services:
       - golint-cache:/tmp/golint:rw
       - .:/src:ro
     working_dir: /src
+
+  hugo:
+    image: klakegg/hugo:0.107.0-ext-alpine
+    volumes:
+      - ./docs:/src:rw
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+    environment: {NPM_CONFIG_UPDATE_NOTIFIER: false}
+    working_dir: /src
+    entrypoint: []
