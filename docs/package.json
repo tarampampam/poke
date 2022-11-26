@@ -15,6 +15,6 @@
     "highlight.js": "^11.5",
     "instant.page": "^5.1",
     "lazysizes": "^5.3",
-    "mermaid": "^9.2"
+    "mermaid": "^8.4.3"
   }
 }
