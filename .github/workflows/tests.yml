@@ -42,10 +42,9 @@ jobs:
       - uses: actions/configure-pages@v2
 
       - uses: actions/upload-pages-artifact@v1
-        with: {path: ./public}
+        with: {path: ./docs/public} # relative path from the repository root
 
-      - id: deployment
-        uses: actions/deploy-pages@v1
+      - {uses: actions/deploy-pages@v1, id: deployment}
 
   golangci-lint:
     name: 🧪 Run GolangCI-lint
