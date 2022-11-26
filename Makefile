@@ -20,24 +20,29 @@ image: ## Build docker image with the app
 	@printf "\n   \e[30;42m %s \033[0m\n\n" 'Now you can use image like `docker run --rm $(APP_NAME):local ...`'
 
 generate: ## Generate assets
-	docker-compose run $(DC_RUN_ARGS) --no-deps go go generate ./...
+	docker-compose run $(DC_RUN_ARGS) go go generate ./...
 
 build: generate ## Build app binary file
-	docker-compose run $(DC_RUN_ARGS) -e "CGO_ENABLED=0" --no-deps go go build -trimpath -ldflags $(LDFLAGS) ./cmd/poke/
+	docker-compose run $(DC_RUN_ARGS) -e "CGO_ENABLED=0" go go build -trimpath -ldflags $(LDFLAGS) ./cmd/poke/
 
 test: ## Run tests
-	docker-compose run $(DC_RUN_ARGS) --no-deps go go test -v -race -timeout 10s ./...
+	docker-compose run $(DC_RUN_ARGS) go go test -v -race -timeout 10s ./...
 
 lint: ## Run code linter
 	docker-compose run --rm golint golangci-lint run
 
 fmt: ## Run source code formatting tools
-	docker-compose run $(DC_RUN_ARGS) --no-deps go gofmt -s -w -d .
-	docker-compose run $(DC_RUN_ARGS) --no-deps go goimports -d -w .
-	docker-compose run $(DC_RUN_ARGS) --no-deps go go mod tidy
+	docker-compose run $(DC_RUN_ARGS) go gofmt -s -w -d .
+	docker-compose run $(DC_RUN_ARGS) go goimports -d -w .
+	docker-compose run $(DC_RUN_ARGS) go go mod tidy
 
 shell: ## Start shell inside go environment
 	docker-compose run $(DC_RUN_ARGS) go sh
+
+.PHONY: docs
+docs: ## Start a webserver with documentation
+	docker-compose run $(DC_RUN_ARGS) -e "NPM_CONFIG_UPDATE_NOTIFIER=false" hugo sh -c 'test -d ./node_modules || npm install --no-audit'
+	docker-compose run $(DC_RUN_ARGS) -p '1313:1313/tcp' hugo hugo server --watch --environment development --baseURL 'http://127.0.0.1:1313/'
 
 # Overall stuff
 

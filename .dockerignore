@@ -25,6 +25,8 @@
 
 ## etc
 /*.md
+/docs
+/examples
 .DS_Store
 *.cache
 *.out

@@ -31,3 +31,12 @@ services:
       - golint-cache:/tmp/golint:rw
       - .:/src:ro
     working_dir: /src
+
+  hugo:
+    image: klakegg/hugo:0.107.0-ext-alpine
+    volumes:
+      - ./docs:/src:rw
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+    working_dir: /src
+    entrypoint: []
