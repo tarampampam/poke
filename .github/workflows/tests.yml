@@ -26,6 +26,9 @@ jobs:
     name: 📕 Build the docs
     runs-on: ubuntu-latest
     defaults: {run: {working-directory: ./docs}}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v3
 
@@ -34,7 +37,15 @@ jobs:
 
       - run: npm ci
 
-      - run: hugo --environment production --noChmod --noTimes
+      - run: hugo --environment production --noChmod --noTimes --minify
+
+      - uses: actions/configure-pages@v2
+
+      - uses: actions/upload-pages-artifact@v1
+        with: {path: ./public}
+
+      - id: deployment
+        uses: actions/deploy-pages@v1
 
   golangci-lint:
     name: 🧪 Run GolangCI-lint
