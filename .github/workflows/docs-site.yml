@@ -2,7 +2,7 @@ name: docs-site
 
 on:
   push:
-    branches: [master, main, docs] # TODO remove "docs"
+    branches: [master, main]
     paths: ['docs/**', '.github/workflows/docs-site.yml']
   workflow_dispatch: {}
 

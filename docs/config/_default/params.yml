@@ -84,7 +84,7 @@ repoHost: GitHub
 #repoHost: Gitea
 docsRepo: 'https://github.com/tarampampam/poke'
 docsRepoBranch: master
-docsRepoSubPath: '/docs'
+docsRepoSubPath: 'docs'
 editPage: true
 lastMod: false
 
