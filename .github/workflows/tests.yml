@@ -34,7 +34,7 @@ jobs:
 
       - run: npm ci
 
-      - run: hugo --environment production --i18n-warnings --noChmod --noTimes
+      - run: hugo --environment production --noChmod --noTimes
 
   golangci-lint:
     name: 🧪 Run GolangCI-lint
