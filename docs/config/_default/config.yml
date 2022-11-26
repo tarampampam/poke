@@ -1,4 +1,3 @@
-canonifyURLs: false
 disableAliases: true
 disableHugoGeneratorInject: true
 enableEmoji: true
