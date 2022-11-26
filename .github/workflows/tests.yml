@@ -22,7 +22,7 @@ jobs:
 
       - uses: gacts/gitleaks@v1
 
-  docs:
+  build-docs:
     name: 📕 Build the docs
     runs-on: ubuntu-latest
     defaults: {run: {working-directory: ./docs}}
