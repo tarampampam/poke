@@ -1,9 +1,5 @@
 ---
-title : "Modern Documentation Theme"
-description: "Doks is a Hugo theme for building secure, fast, and SEO-ready documentation websites, which you can easily update and customize."
-lead: "Doks is a Hugo theme for building secure, fast, and SEO-ready documentation websites, which you can easily update and customize."
-date: 2020-10-06T08:47:36+00:00
-lastmod: 2020-10-06T08:47:36+00:00
-draft: false
+title : "Simple and powerful testing tool"
+lead: "Just imagine, that you can write E2E tests using familiar JavaScript syntax and run them without any external dependencies, like node.js, jest, Axios, etc. Sounds like something impossible? 😉"
 images: []
 ---

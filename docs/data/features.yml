@@ -1,0 +1,16 @@
+rows:
+  - items:
+    - title: JavaScript under the hood
+      content: Write your tests in familiar ECMAScript 5.1 syntax - `let`, `const`, arrow functions and classes are supported
+    - title: Fast by default ⚡
+      content: Tests are **parallelized** by running them in their own thread to minimize execution time
+    - title: Config free
+      content: Ready to work out of the box - you won't need to configure anything
+
+  - items:
+    - title: Cross-platform
+      content: Like any Go application, you can run Poke on Linux, windows, or macOS. Additionally, it ready to integrate with **CI/CD** and **Docker**
+    - title: Tests & asserts grouping
+      content: The jest-like syntax (`describe`, `test`, `beforeEach`) for grouping tests cases and asserts
+    - title: Built-in tooling
+      content: You can use **fake data generator** (strings, numbers, IP addresses, UUIDs, and so on), **hashing**, and **encoding** functions - they are embedded in the app

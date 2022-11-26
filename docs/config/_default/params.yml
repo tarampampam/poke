@@ -1,40 +1,31 @@
 # Meta Data for SEO
 
 ## Homepage
-title: Doks
+title: Poke
 titleSeparator: '-'
-titleAddition: Modern Documentation Theme
+titleAddition: A simple and powerful tool for E2E-testing
 description: >-
-  Doks is a Hugo theme for building secure, fast, and SEO-ready documentation
-  websites, which you can easily update and customize.
+  Just imagine, that you can write E2E tests using familiar javascript syntax without any external dependencies,
+  like node.js, jest, Axios, etc. Sounds like something impossible? 😉
 
 ## Open Graph
-images: [doks.png]
+images: [poke.png]
 ogLocale: en_US
-titleHome: Doks Theme
-
-## Twitter Cards
-twitterSite: '@getdoks'
-twitterCreator: '@henkverlinde'
 
 ## Twitter Cards
 #schemaType: Person
 schemaType: Organization
-schemaName: Doks
-schemaAuthor: Henk Verlinde
-schemaAuthorTwitter: 'https://twitter.com/henkverlinde'
-schemaAuthorLinkedIn: 'https://www.linkedin.com/in/henkverlinde/'
-schemaAuthorGitHub: 'https://github.com/h-enk'
+schemaName: Poke
+schemaAuthor: tarampampam
+schemaAuthorGitHub: 'https://github.com/tarampampam'
 schemaLocale: en-US
-schemaLogo: logo-doks.png
+schemaLogo: logo.png
 schemaLogoWidth: 512
 schemaLogoHeight: 512
-schemaImage: doks.png
+schemaImage: poke.png
 schemaImageWidth: 1280
 schemaImageHeight: 640
-schemaTwitter: 'https://twitter.com/getdoks'
-schemaLinkedIn: ''
-schemaGitHub: 'https://github.com/h-enk/doks'
+schemaGitHub: 'https://github.com/tarampampam/poke'
 
 ## Sitelinks Search Box
 siteLinksSearchBox: false
@@ -63,20 +54,16 @@ fillImage: 1270x740 Center
 
 # Footer
 footer: >-
-  Powered by <a class="text-muted" href="https://www.netlify.com/">Netlify</a>,
-  <a class="text-muted" href="https://gohugo.io/">Hugo</a>, and <a
-  class="text-muted" href="https://getdoks.org/">Doks</a>
+  Site generated with <a class="text-muted" href="https://gohugo.io/">Hugo</a> (<a
+  class="text-muted" href="https://getdoks.org/" rel="nofollow">Doks</a> theme)
 
 # Feed
-copyRight: Copyright (c) 2020-2021 Henk Verlinde
+#copyRight: Copyright (c) 2020-2021
 
 # Alert
 alert: false
 alertDismissable: true
-alertText: >-
-  Introducing the Doks child theme, several DX + UX updates, and more! <a
-  class="alert-link stretched-link"
-  href="https://getdoks.org/blog/doks-v0.2/">Check out Doks v0.2</a>
+alertText: Alert text
 
 # Edit Page
 # repoHost [Github | Gitea | GitLab | Bitbucket | BitbucketServer ] is used for building the edit link based on git hoster
@@ -89,9 +76,7 @@ editPage: true
 lastMod: false
 
 sections:
-  sectionNav:
-    - docs
-    - guides
+  sectionNav: [docs]
 
 options:
   lazySizes: true
@@ -105,7 +90,6 @@ options:
   breadCrumb: false
   highLight: true
   multilingualMode: false
-  docsVersioning: false
   fullWidth: false
   navbarSticky: true
   toTopButton: false
@@ -114,4 +98,4 @@ options:
 menu:
   section:
     auto: true
-    collapsibleSidebar: true
+    collapsibleSidebar: false
