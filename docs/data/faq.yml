@@ -1,0 +1,12 @@
+items:
+  - icon: ⭐
+    title: Yet Another Tool, I already use X
+    content: |
+      The more different tools the better, agreed? In addition, this app is very easy to use and intuitive,
+      and can be used by the frontend, backend, and QA engineers.
+
+  - icon: 🤔
+    title: Why "Poke"?
+    content: |
+      This is a simple play on words, meaning "poking at the API", i.e. just checking that the API responses
+      match the expectations.

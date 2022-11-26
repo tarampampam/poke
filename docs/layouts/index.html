@@ -47,6 +47,20 @@
     </div>
   </section>
   {{ end }}
+
+  <section class="section section-md my-5">
+    <div class="container">
+      <div class="row justify-content-center align-items-center text-center mt-lg-3">
+        {{ range .Site.Data.faq.items }}
+        <div class="col-lg-7">
+          <p class="fs-4 mt-4">{{ .icon | markdownify }}</p>
+          <h2 class="h4 mt-0">{{ .title | markdownify }}</h2>
+          <p>{{ .content | markdownify }}</p>
+        </div>
+        {{ end }}
+      </div>
+    </div>
+  </section>
 {{ end }}
 
 {{ define "sidebar-footer" }}

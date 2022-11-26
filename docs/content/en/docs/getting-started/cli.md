@@ -1,6 +1,6 @@
 ---
-title: "Commands"
-slug: commands
+title: "Commands / flags"
+slug: cli
 description: ""
 lead: ""
 weight: 130
