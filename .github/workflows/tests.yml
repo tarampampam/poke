@@ -25,19 +25,16 @@ jobs:
   docs:
     name: 📕 Build the docs
     runs-on: ubuntu-latest
+    defaults: {run: {working-directory: ./docs}}
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
+      - uses: peaceiris/actions-hugo@v2
         with: {hugo-version: 0.107.0, extended: true}
 
       - run: npm ci
-        working-directory: docs
 
-      - name: Build
-        working-directory: docs
-        run: hugo --environment production --i18n-warnings --noChmod --noTimes
+      - run: hugo --environment production --i18n-warnings --noChmod --noTimes
 
   golangci-lint:
     name: 🧪 Run GolangCI-lint
