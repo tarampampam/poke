@@ -1,5 +1,6 @@
 ---
 title: "Integration with IDE"
+slug: ide
 description: ""
 lead: ""
 weight: 160

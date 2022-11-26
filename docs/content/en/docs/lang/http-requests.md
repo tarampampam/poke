@@ -1,5 +1,6 @@
 ---
 title: "HTTP requests"
+slug: http-requests
 description: ""
 lead: ""
 weight: 250

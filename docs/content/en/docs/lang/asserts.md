@@ -1,5 +1,6 @@
 ---
 title: "Asserts"
+slug: asserts
 description: ""
 lead: ""
 weight: 290

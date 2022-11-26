@@ -1,5 +1,6 @@
 ---
 title: "Encoding"
+slug: encoding
 description: ""
 lead: ""
 weight: 260

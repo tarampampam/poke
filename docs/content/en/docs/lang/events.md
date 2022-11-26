@@ -1,5 +1,6 @@
 ---
 title: "Events"
+slug: events
 description: ""
 lead: ""
 weight: 230

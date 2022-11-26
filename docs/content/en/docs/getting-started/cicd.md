@@ -1,5 +1,6 @@
 ---
 title: "CI/CD Integration"
+slug: cicd
 description: ""
 lead: ""
 weight: 150

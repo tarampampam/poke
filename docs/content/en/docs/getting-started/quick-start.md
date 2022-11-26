@@ -1,5 +1,6 @@
 ---
 title: "Quick Start"
+slug: quick-start
 description: ""
 lead: ""
 weight: 120

@@ -1,5 +1,6 @@
 ---
 title: "Process"
+slug: process
 description: ""
 lead: ""
 weight: 210

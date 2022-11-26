@@ -1,5 +1,6 @@
 ---
 title: "I/O"
+slug: io
 description: ""
 lead: ""
 weight: 220

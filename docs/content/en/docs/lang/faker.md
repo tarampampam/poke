@@ -1,5 +1,6 @@
 ---
 title: "Faker"
+slug: faker
 description: ""
 lead: ""
 weight: 280

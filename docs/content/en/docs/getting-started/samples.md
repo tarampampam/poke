@@ -1,5 +1,6 @@
 ---
 title: "Samples"
+slug: samples
 description: ""
 lead: ""
 weight: 140

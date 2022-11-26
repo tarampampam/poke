@@ -1,5 +1,6 @@
 ---
 title: "Commands"
+slug: commands
 description: ""
 lead: ""
 weight: 130

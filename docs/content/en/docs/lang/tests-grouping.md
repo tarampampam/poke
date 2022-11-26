@@ -1,5 +1,6 @@
 ---
 title: "Tests grouping"
+slug: tests-grouping
 description: ""
 lead: ""
 weight: 290

@@ -1,5 +1,6 @@
 ---
 title: "Installation"
+slug: installation
 description: ""
 lead: ""
 weight: 110

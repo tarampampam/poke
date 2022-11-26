@@ -1,5 +1,6 @@
 ---
 title: "Console"
+slug: console
 description: ""
 lead: ""
 weight: 240

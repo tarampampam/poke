@@ -1,5 +1,6 @@
 ---
 title: "Hashing"
+slug: hashing
 description: ""
 lead: ""
 weight: 270
