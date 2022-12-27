@@ -42,7 +42,7 @@ If you find any package errors, please, [make an issue][link_create_issue] in cu
 This is open-sourced software licensed under the [MIT License][link_license].
 
 [badge_language]:https://img.shields.io/github/go-mod/go-version/tarampampam/poke?longCache=true
-[badge_build]:https://img.shields.io/github/workflow/status/tarampampam/poke/tests?maxAge=30&logo=github
+[badge_build]:https://img.shields.io/github/actions/workflow/status/tarampampam/poke/tests.yml?branch=master&maxAge=30&logo=github
 [badge_coverage]:https://img.shields.io/codecov/c/github/tarampampam/poke/master.svg?maxAge=30
 [badge_size_latest]:https://img.shields.io/docker/image-size/tarampampam/poke/latest?maxAge=30
 [badge_issues]:https://img.shields.io/github/issues/tarampampam/poke.svg?maxAge=45
