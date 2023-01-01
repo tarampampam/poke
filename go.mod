@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/bmatcuk/doublestar/v4 v4.4.0
 	github.com/dop251/goja v0.0.0-20221118162653-d4bf6fde1b86
-	github.com/go-faker/faker/v4 v4.0.0-beta.3
+	github.com/go-faker/faker/v4 v4.0.0-beta.4
 	github.com/jedib0t/go-pretty/v6 v6.4.3
 	github.com/json-iterator/go v1.1.12
 	github.com/pkg/errors v0.9.1
